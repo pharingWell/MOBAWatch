@@ -15,7 +15,7 @@ rule: 'My Rule'
     CreateEffect(LocalPlayer(),Effect.Ring, Color.Aqua, UpdateEveryFrame(LocalPlayer().Position()*Vector(1,0,1)), LocalPlayer().hitboxRadius, EffectRev.VisibleToPositionAndRadius);
 }
     
-    globalvar Number thickness:  0.75;
+globalvar Number thickness:  0.25;
 
  Number getIntersectionDistanceFromSegment(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal);
 Vector getSegmentPlaneIntersection(in Vector segmentStart, in Vector segmentDirection, in Number intersectionDistance): segmentStart +  intersectionDistance * segmentDirection;

@@ -20,4 +20,3 @@ class Creature : Entity{
         health = 0;
     }
 }
-
