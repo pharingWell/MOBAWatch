@@ -1,0 +1,155 @@
+import "../debug.ostw";
+import "../global.ostw";
+import "../Source Files/collision.ostw";
+import "../customGameSettings.json";
+
+globalvar Vector[] Points = GetLines("../.resources/meshes/walls.obj");
+Number RADIUS: 0.5;
+Vector START: Vector(14.4, 0, 7.6);
+Vector END: Vector(-17, 2, -2.8);
+
+single struct BVH {
+    public GridAlignedCollider gac;
+    public Any|BVH [] boundingBoxes; //BVH type
+}
+
+Vector startPoint: Points[CurrentArrayIndex() * 2];
+Vector endPoint: Points[CurrentArrayIndex() * 2 + 1];
+globalvar Line[] Lines = (FilteredArray(Points.Map(v =>  Line.construct(startPoint, endPoint, CurrentArrayIndex())), CurrentArrayIndex() < Points.Length/2));
+globalvar GridAlignedCollider[] GAC;
+globalvar Number[] xValues = SortedArray(MappedArray(Points, XOf(ArrayElement())), ArrayElement());
+globalvar Number[] zValues = SortedArray(MappedArray(Points, ZOf(ArrayElement())), ArrayElement());
+Number MIN_X: xValues[0];
+Number MAX_X:  xValues.Last;
+Number MIN_Z: zValues[0];
+Number MAX_Z:  zValues.Last;
+playervar Number[] playerColliderCollisions;
+playervar Boolean[] isColliding;
+playervar Number time;
+
+playervar Number[] succeeded = [0, 0];
+
+Line[] getCollisions(in Vector point, in Number radius){
+    GridAlignedCollider gac: <GridAlignedCollider> ArrayElement();
+    return FilteredArray(GAC, gac!=null && gac.minX <= point.X + radius && gac.maxX >= point.X - radius && gac.minZ <= point.Z + radius && gac.maxZ >= point.Z - radius);
+}
+
+rule: 'Setup BVH'
+{
+    GAC = Lines.Map(l => GridAlignedCollider.construct(startPoint.X, startPoint.Z, endPoint.X, endPoint.Z, CurrentArrayIndex()));
+    GridAlignedCollider.id_counter = GAC.Length;
+    GridAlignedCollider gac: <GridAlignedCollider> ArrayElement();
+    Number minX! = (<GridAlignedCollider> SortedArray(GAC, gac.minX)[0]).minX;
+    Number minZ! = (<GridAlignedCollider> SortedArray(GAC, gac.minZ)[0]).minZ;
+    Number maxX! = (<GridAlignedCollider> SortedArray(GAC, -gac.maxX)[0]).maxX;
+    Number maxZ! = (<GridAlignedCollider> SortedArray(GAC, -gac.maxZ)[0]).maxZ;
+    Number width! = maxX - minX;
+    Number height! = maxZ - minZ;
+    GridAlignedCollider.id_counter++;
+    GridAlignedCollider globalGAC;
+    GridAlignedCollider.construct_to_ptr(minX, minZ, maxX, maxZ, globalGAC);
+    Number DIVISIONS: 3;
+    printToScreen(toString([MIN_X, MIN_Z, MAX_X, MAX_Z]));
+    //GridAlignedCollider.visualize(globalGAC);
+    GridAlignedCollider[] Level3;
+    Level3[3^2] = GridAlignedCollider.construct(0,0,0,0,-1); 
+    for(Number i! = 0; i < DIVISIONS; i++){
+        for(Number j! = 0; j < DIVISIONS; j+= 2){
+            Number midX: (gac.maxX-gac.minX)/2+gac.minX;
+            Number midZ: (gac.maxZ-gac.minZ)/2+gac.minZ;
+            GridAlignedCollider[] temp! = FilteredArray(GAC, 
+                i/DIVISIONS*width+minX <= midX && 
+                (i+1)/DIVISIONS*width+minX >= midX &&
+                j/DIVISIONS*height+minZ <= midZ && 
+                (j+1)/DIVISIONS*height+minZ >= midZ
+            );
+            GridAlignedCollider[] xAxis = SortedArray(temp, gac.minX);
+            GridAlignedCollider[] zAxis = SortedArray(temp, gac.minZ);
+            GridAlignedCollider.construct_to_ptr(xAxis[0].minX, zAxis[0].minZ, xAxis.Last.maxX, zAxis.Last.maxZ, Level3[j*DIVISIONS + i]);
+            GridAlignedCollider.visualize(Level3[j*DIVISIONS + i]);
+
+        }
+    }
+}
+
+rule: 'Display collisions'
+{
+    StartGameMode();
+    // DisableInspectorRecording();
+    SetMatchTime(0);
+    PauseMatchTime();
+    CreateEffect(LocalPlayer(), Effect.Ring, Color.Aqua, UpdateEveryFrame(LocalPlayer().Position()), RADIUS, EffectRev.VisibleToPositionAndRadius);
+    printToScreen(toString(LocalPlayer().playerColliderCollisions));
+    WaitUntil(GAC.Length == Points.Length/2, 99999);
+    for(Number i! = 0; i < Lines.Length; i++){
+        Line l: Lines[i];
+        CreateBeamEffect(LocalPlayer(), BeamType.GoodBeam, Vector(l.startX, 0, l.startZ), Vector(l.endX, 0, l.endZ), LocalPlayer().isColliding[EvaluateOnce(i)] ? Color.Red : Color.White, EffectRev.VisibleToAndColor);   
+    }
+    CreateEffect(LocalPlayer(), Effect.Orb, Color.LimeGreen, END, 1, EffectRev.VisibleTo);
+    CreateHudText(LocalPlayer(), 0.0001 + (LocalPlayer().succeeded[1] == 1 ? LocalPlayer().succeeded[0] : Max(0, TotalTimeElapsed() - LocalPlayer().time)), null, null, Location.Top, 0, LocalPlayer().succeeded[1] == 1 ? Color.LimeGreen : Color.White, null, null, HudTextRev.VisibleToStringAndColor);
+    //Vector currentLine: Vector(Lines[LocalPlayer().playerColliderCollisions[0]].startX, 0 , Lines[LocalPlayer().playerColliderCollisions[0]].startZ);
+    //CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,  currentLine, currentLine + LocalPlayer()._normal, Color.Rose, EffectRev.VisibleToPositionAndRadius);
+    foreach(GridAlignedCollider gac in GAC){
+        GridAlignedCollider.visualize_lite(gac);
+        Wait(0.1);
+    }
+
+}
+
+void resetPlayer() "reset player"
+{
+    succeeded[1] = 0;
+    Teleport(EventPlayer(), START);
+    Wait();
+    SetFacing(EventPlayer(), DirectionTowards(START, END));
+    time = TotalTimeElapsed() + 0.032;
+}
+
+rule: 'Player setup'
+Event.OngoingPlayer
+{
+    DisableGameModeHud();
+    resizeArray(isColliding, Points.Length/2);
+    ForcePlayerHero(EventPlayer(), Hero.Echo);
+    WaitUntil(HasSpawned(), 99999);
+    resetPlayer();
+    while(true){
+        WaitUntil(DistanceBetween(PositionOf(), END) < 3, 99999);
+        succeeded = [TotalTimeElapsed() - time, 1];
+        WaitUntil(DistanceBetween(PositionOf(), START) < 3, 99999);
+    }
+}
+
+rule: 'Player respawn'
+Event.OngoingPlayer
+if(!IsDead())
+if(HasSpawned())
+{
+    Wait(0.128);
+    resetPlayer();
+}
+
+// playervar Vector lastPosition = null;
+// rule: 'Update position'
+// Event.OngoingPlayer
+// if(lastPosition != PositionOf())
+// {
+//     lastPosition = PositionOf();
+//     isColliding = isColliding.Map(b => false);
+//     playerColliderCollisions = getCollisions(PositionOf(), RADIUS).Map(l => l.id);
+//     foreach(Number id in playerColliderCollisions){
+//         Line line: Lines[id];
+//         if(line.intersectionWithCircle(PositionOf(), RADIUS)){
+//             isColliding[id] = true;
+//             ForceThrottle(EventPlayer(), 0, 0, 0, 0, 0, 0);
+//             PlayEffect(EventPlayer(), PlayEffect.ExplosionSound, null, PositionOf(), 40);
+//             Wait(0.048);
+//             resetPlayer();
+//             Wait(0.016);
+//             StopForcingThrottle();
+//             break;
+//         }
+//     }
+//     Wait();
+//     LoopIfConditionIsTrue();
+// }

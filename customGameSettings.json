@@ -8,6 +8,12 @@
         "Max Team 2 Players": 5,
         "Return To Lobby": "Never"
     },
+    "Extensions": {
+        "Beam Effects": true,
+        "Play More Effects": true,
+        "Spawn More Dummy Bots": true,
+        "Projectiles": true
+    },
     "Modes": {
         "Team Deathmatch": {
             "Enabled Maps": [

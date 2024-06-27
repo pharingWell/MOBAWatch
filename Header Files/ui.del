@@ -1,0 +1,35 @@
+import "../Header Files/model/model.del";
+import "../global.ostw";
+define VAL1: 0.5;
+define VAL2: -0.866;
+define FORWARD_VECTOR: Vector(0, VAL2, VAL1);
+define RIGHT_VECTOR: Vector(1,0,0);
+define UP_VECTOR: Vector(0,VAL1,-VAL2);
+//playervar Number Setting_CAMERA_DISTANCE = 12;
+define Setting_CAMERA_DISTANCE : 12; //12
+playervar Vector cameraPos = Vector(0,0,1);
+playervar Vector renderPosition = Vector(0,0,1);
+define cursorX(Player p = EventPlayer()): HorizontalFacingAngleOf(p);
+define cursorY(Player p = EventPlayer()): -VerticalFacingAngleOf(p);
+
+playervar Boolean showCursor = true;
+define cursor_Vect2D: Vector(cursorX(), cursorY());
+playervar Vector cursorWorldPositon;
+playervar Boolean viewingMap = false;
+playervar Vector chasedCursorPosition!;
+playervar Boolean isCameraLocked = false;
+playervar Boolean isMouseMoving;
+
+playervar Boolean loading!;
+
+Vector cameraEye(in Player p = EventPlayer()): FORWARD_VECTOR * -Setting_CAMERA_DISTANCE + cameraPosition(p);
+
+Vector cameraPosition(in Player p = EventPlayer()): p.isCameraLocked && !p.viewingMap ? UpdateEveryFrame(getPuppet(p).Position()) : p.cameraPos;
+define SCALE: 100;
+Vector uiPos(in Player p, in Number x, in Number y): (cameraEye(p) +  FORWARD_VECTOR * SCALE+ RIGHT_VECTOR * x + UP_VECTOR * y);
+
+Vector uiPos_customDistance(in Player p, in Number x, in Number y, in Number scale): (cameraEye(p) + FORWARD_VECTOR * scale  + RIGHT_VECTOR * x + UP_VECTOR * y);
+Vector towards(Number x, Number y): (FORWARD_VECTOR * SCALE + RIGHT_VECTOR * x + UP_VECTOR * (y));
+Vector uiToWorld(in Player p, in Number x, in Number y) : (-cameraEye(p).Y/towards(x,y).Y)*towards(x,y) + cameraEye(p);
+Vector textPosToWorld(in Player p, in Number x, in Number y) : (-cameraEye(p).Y/towards(x,y+1.5).Y)*towards(x,y+1.5) + cameraEye(p);
+playervar Number showHUD; //sucks, but this needs to go here

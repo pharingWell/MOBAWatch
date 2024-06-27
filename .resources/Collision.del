@@ -1,0 +1,162 @@
+import "customGameSettings.lobby";
+import "../debug.ostw";
+globalvar Number z;
+
+//////////////////UI Variables//////////////
+
+globalvar Vector[] starts;
+globalvar Vector[] ends;
+globalvar Vector[] midpoints;
+globalvar Vector[] normals;
+globalvar Boolean[] wallActive;
+playervar Vector intersectionPoint;
+playervar Number distanceToWall;
+globalvar Boolean isMoving;
+playervar Vector direction;
+void waitAndUpdatePositon(){
+
+}
+globalvar Vector currentposition!;
+globalvar Vector lastsavedpos!;
+rule: "Main Collision Logic"
+Event.OngoingPlayer
+if (HasSpawned())
+{
+    if(currentposition == null){
+        currentposition = PositionOf();
+    }
+    if(PositionOf() == currentposition){
+        isMoving = false;
+        Wait();
+        Loop();
+    }
+    lastsavedpos = PositionOf();
+    Wait();
+    currentposition = PositionOf();
+    isMoving = true;
+    define wallPosition: ArrayElement();
+    Boolean withinWallDistance: DistanceBetween(wallPosition,currentposition) <= DistanceBetween(wallPosition,(ends[CurrentArrayIndex()]));
+    Boolean isLastPosOnPositiveSideOfWall: (DotProduct(DirectionTowards(wallPosition,<Vector>lastsavedpos), <Vector>(normals[z])) > 0);
+    Boolean isCurrentPosOnPositiveSideOfWall: (DotProduct(DirectionTowards(wallPosition,<Vector>currentposition), <Vector>(normals[z])) > 0);
+    Boolean hasPassedThroughWall: isLastPosOnPositiveSideOfWall != isCurrentPosOnPositiveSideOfWall;
+    define wall = FilteredArray(midpoints, wallActive[CurrentArrayIndex()] || withinWallDistance || hasPassedThroughWall);
+    //define wall! = [midpoints[0]];
+    for(define x! = 0; x < CountOf(wall); x++){
+        z = IndexOfArrayValue(midpoints,wall[x]);
+        define wallNormal: normals[z];
+        define wallMidpoint: midpoints[z];
+        define wallStart: starts[z];
+        define wallEnd: ends[z];
+        define thickness: 0.25;
+        define segmentDirection! = DirectionTowards(lastsavedpos,currentposition);
+        distanceToWall = getIntersectionDistanceFromSegment(lastsavedpos,segmentDirection,wallNormal,wallMidpoint);
+        intersectionPoint = getSegmentPlaneIntersection(lastsavedpos,segmentDirection,distanceToWall);
+        if(intersectionPoint.Y <= wallStart.Y && intersectionPoint.Y >= wallEnd.Y &&
+               intersectionPoint.X >= wallEnd.X && intersectionPoint.Z >= wallEnd.Z && 
+               intersectionPoint.X <= wallStart.X && intersectionPoint.Z <= wallStart.Z)
+            {
+                direction = wallNormal;
+                // if((DotProduct(DirectionTowards(wallMidpoint,lastsavedpos),wallNormal) >= 0) != (DotProduct(DirectionTowards(wallMidpoint,currentposition),wallNormal) > 0))
+                // {   
+                //     Vector teleportPosition! = intersectionPoint + segmentDirection * -thickness;
+                //     Teleport(EventPlayer(),teleportPosition);
+                //     SmallMessage(EventPlayer(),"teleported");
+                // }
+                // if((distanceToWall > 0 && distanceToWall < thickness) || DistanceBetween(intersectionPoint,currentposition+VelocityOf(EventPlayer()) * 0.032) < thickness){
+                    
+                //     SetMoveSpeed(EventPlayer(),0);
+                //     //CancelPrimaryAction();
+
+                //     ApplyImpulse(EventPlayer(), DirectionTowards(intersectionPoint,lastsavedpos), 0.032*SpeedOf(), Relative.ToWorld, ContraryMotion.Cancel);
+                // }
+
+            
+            LogToInspector($"{wallStart},{wallEnd},{intersectionPoint}");
+            
+            
+            // {
+            //     
+            //     CancelPrimaryAction();
+            //     //define temp_calc_pos = prevpos_intersection + DirectionTowards(prevpos_intersection,lastsavedpos) * Vector(1,0,1) * thickness;
+            //     // SmallMessage(EventPlayer(),$"Teleported {temp_calc_pos},{lastsavedpos}");
+            //     StartForcingPlayerPosition(eventPlayer,temp_calc_pos);
+            //     
+            //     WaitUntil(SpeedOf()<1,9999);
+            //     StopForcingPlayerPosition();
+            // }
+        }
+        // if(DistanceBetween(collidingPointOnBody,collisionPointToWallProjection)<=thickness&&fttr >= 0 && ftbl >= 0 && sttr >= 0 && stbl >= 0)
+        // {
+        //     if(active_wall[z] == 0)
+        //         {
+        //             active_wall[z] = 1;
+        //         }
+        //     ApplyImpulse(eventPlayer, DirectionTowards(collisionPointToWallProjection,collidingPointOnBody) * Vector(1,0,1), 0.001);
+        //     if(ThrottleOf()!= Vector())
+        //     SetMoveSpeed(eventPlayer,100 - (DotProduct(DirectionTowards(EyePosition(),EyePosition() + WorldVectorOf(ThrottleOf(),eventPlayer)),-1*DirectionTowards(collisionPointToWallProjection,collidingPointOnBody)) * 100));                                
+        // }
+        // else
+        // {
+        //     active_wall[z] = 0;
+        //     SetMoveSpeed(eventPlayer,100);
+        // }
+        // LogToInspector(z);
+    }
+    SetMoveSpeed(EventPlayer(),100);
+    Loop();
+
+}
+
+Vector vectorProjection(Vector a, Vector onto){
+    return onto * (DotProduct(a,onto)/DotProduct(onto,onto));
+}
+
+rule: 'My Rule'
+{
+    
+    wallConstructor(Vector(2,0,0),Vector(2,4,3));
+    wallConstructor(Vector(0,0,0),Vector(2,4,-3));
+    wallConstructor(Vector(0,0,2),Vector(2,3,-5));
+    wallConstructor(Vector(0,0,-2),Vector(-2,6,-5));
+    wallConstructor(Vector(0,0,4),Vector(2,6,9));
+    printToScreen($"Load:{ServerLoad()},Peak:{ServerLoadPeak()},Avg:{ServerLoadAverage()}");
+    printToScreen($"{z}");
+    printToScreen($"Velocity:{VelocityOf(LocalPlayer())}");
+    printToScreen($"Speed: {SpeedOf(LocalPlayer())*0.016}");
+    printToScreen($"DistanceToWall: {LocalPlayer().distanceToWall}");
+    CreateEffect(LocalPlayer(),Effect.Sphere,Color.Aqua,LocalPlayer().intersectionPoint,0.1,EffectRev.VisibleToPositionAndRadius);
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,LocalPlayer().Position(),LocalPlayer().intersectionPoint,Color.Yellow,EffectRev.VisibleToPositionAndRadius);
+    CreateBeamEffect(LocalPlayer(),BeamType.GoodBeam,LocalPlayer().Position(),LocalPlayer().Position()+Normalize(VelocityOf(LocalPlayer()))*DistanceBetween(LocalPlayer().Position(),LocalPlayer().intersectionPoint),Color.Yellow,EffectRev.VisibleToPositionAndRadius);
+    //CreateBeamEffect(LocalPlayer(),BeamType.BadBeam,LocalPlayer().Position(),LocalPlayer().Position()+VelocityOf(LocalPlayer()),Color.Yellow,EffectRev.VisibleToPositionAndRadius);
+
+}
+
+public void wallConstructor(Vector start, Vector end) "Wall Constructor"
+{
+    define index! = CountOf(starts);
+    if(start.Y > end.Y){
+        starts[index] = start;
+        ends[index] = end;
+    }else{
+        starts[index] = end;
+        ends[index] = start;
+    }
+    midpoints[index] = Midpoint(start,end) * Vector(1,0,1) + Vector(0,Min(end.Y,start.Y),0);
+    normals[index] = Normalize(CrossProduct(VectorTowards(start,end),VectorTowards(start,midpoints[index])));
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,end,end*Vector(1,0,1)+start*Vector(0,1,0),Color.Yellow,EffectRev.VisibleTo);
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,start,end*Vector(1,0,1)+start*Vector(0,1,0),Color.Yellow,EffectRev.VisibleTo);
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,start,start*Vector(1,0,1)+end*Vector(0,1,0),Color.Yellow,EffectRev.VisibleTo);
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,start,start*Vector(1,0,1)+end*Vector(0,1,0),Color.Yellow,EffectRev.VisibleTo);
+    CreateBeamEffect(LocalPlayer(),BeamType.GrappleBeam,midpoints[index],midpoints[index]+normals[index],Color.Yellow,EffectRev.VisibleTo);
+    CreateInWorldText(LocalPlayer(),index,midpoints[index],2,Clipping.ClipAgainstSurfaces,InworldTextRev.VisibleTo,Color.White,Spectators.DefaultVisibility);
+}
+
+Number getIntersectionDistanceFromSegment(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal);
+
+Vector getSegmentPlaneIntersection(in Vector segmentStart, in Vector segmentDirection, in Number intersectionDistance): segmentStart +  intersectionDistance * segmentDirection;
+
+rule: 'My Rule'
+Event.OngoingPlayer
+{
+    StartAccelerating(EventPlayer(),direction, (distanceToWall > 0 && distanceToWall < 0.25) ? 1000 : 0,1000,Relative.ToWorld,AccelerateRev.DirectionRateAndMaxSpeed);
+}

@@ -1,22 +1,22 @@
 import "entity.del";
 
-define CREATURE_COUNT: 96;
+//Generic class for Mercenaries and Minions
+//Can take damage, can be targetted
+//has id, team, etc
 
-        
 
 class Creature : Entity{
-    void creature_constructor(){
-        tickOffset = TotalTimeElapsed()%1;
-        isPlayer = false;
-    }
-    public Boolean visibility;
-    public Vector position;
-    public Vector velocity;
-
     public Number health;
-    public Entity target;
-    public Team team;
     public String appearance;
     public Color color;
-
+    public EEntitySubclass subclass: EEntitySubclass.CREATURE;
+    public constructor(){
+        creature_constructor();
+    }
+    void creature_constructor(){
+        entity_constructor();
+        color = Color.White;
+        appearance = "";
+        health = 0;
+    }
 }

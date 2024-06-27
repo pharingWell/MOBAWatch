@@ -1,0 +1,12 @@
+import "../Header Files/ui.del";
+import "../debug.ostw";
+import "../customGameSettings.json";
+Vector calculateDisplacement(Player p, Number dispX, Number dispY): Vector(uiPos(p,dispX, dispY).X-uiPos(p,0,0).X,uiPos(p,dispX, dispY).Y-uiPos(p,0,0).Y, uiPos(p,dispX, dispY).Z-uiPos(p,0,0).Z);
+Vector calculateWorldDisplacement(Player p, Number dispX, Number dispY): Vector(uiToWorld(p,dispX, dispY).X-uiToWorld(p,0,0).X,uiToWorld(p,dispX, dispY).Y-uiToWorld(p,0,0).Y, uiToWorld(p,dispX, dispY).Z-uiToWorld(p,0,0).Z);
+rule: 'My Rule'
+Event.OngoingPlayer
+{
+    serverLoad();
+    LogToInspector(calculateDisplacement(LocalPlayer(), 0, 0.45));
+    LogToInspector(calculateDisplacement(LocalPlayer(), 0, 0.45));
+}

@@ -1,0 +1,22 @@
+import "../../../Header Files/ui.del";
+import "../../../Header Files/hud/ux.del";
+import "../../../Header Files/hud/actions/button.del";
+
+// button
+rule: 'button'
+Event.OngoingPlayer
+if(buttonIds.Contains(activeHudId))
+{
+    switch(hudAction.action){
+        case EHudInteractionType.LCLICK:
+            setState(!getState());
+            break;
+        case EHudInteractionType.HOVER:
+            setState(2);
+            notHovering();
+            setState(0);
+            break;
+    }
+    Wait();
+    consumeInput();
+}

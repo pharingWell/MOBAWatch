@@ -1,0 +1,26 @@
+import "common.del";
+import "../../../const.del";
+
+enum EUX_MapState{
+    OFF,
+    ON
+}
+
+Number[] mapIds: [1];
+Region PANEL_Map: Region.make(30, -102.75, -56.25, 36.5, 25.5, [EHudInteractionType.LCLICK]);
+//, EHudInteractionType.LHELD
+// define mapInside_halfWidth: 5.5;
+// define mapInside_height: 9.5;
+// define mapInside_yOffset: -3;
+define mapInside_halfWidth: 4.5;
+define mapInside_height: 8;
+define mapInside_yOffset: -1.25;
+
+define maxX: PANEL_Map.halfwidth-mapInside_halfWidth;
+define minX: -PANEL_Map.halfwidth+mapInside_halfWidth;
+
+define maxY:  PANEL_Map.height/2-mapInside_height/2;
+define minY: -PANEL_Map.height/2+mapInside_height/2;
+define xMult: CELL_WIDTH*(GRID_COLUMNS-2)/(maxX-minX);
+define yMult: CELL_HEIGHT*(GRID_ROWS-1)/(maxY-minY);
+playervar Color mapColor = Color.White;

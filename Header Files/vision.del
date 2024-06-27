@@ -1,0 +1,8 @@
+//coords must be in (x, 0, z) format
+globalvar Vector[] Visible_Team1 = [Vector(35,0,0)];
+globalvar Number[] Visible_Team1_distance = [15];
+globalvar Vector[] Visible_Team2;
+globalvar Number[] Visible_Team2_distance; 
+
+playervar Number[] visionTiles;
+globalvar Vector[] visionEffect = [Vector(-16, 0, -3), Vector(-12, 0, -3), Vector(-8, 0, -3), Vector(-4, 0, -3), Vector(0, 0, -3), Vector(4, 0, -3), Vector(8, 0, -3), Vector(12, 0, -3), Vector(-18, 0, 1), Vector(-14, 0, 1), Vector(-10, 0, 1), Vector(-6, 0, 1), Vector(-2, 0, 1), Vector(2, 0, 1), Vector(6, 0, 1), Vector(10, 0, 1), Vector(14, 0, 1), Vector(-20, 0, 5), Vector(-16, 0, 5), Vector(-12, 0, 5), Vector(-8, 0, 5), Vector(-4, 0, 5), Vector(0, 0, 5), Vector(4, 0, 5), Vector(8, 0, 5), Vector(12, 0, 5), Vector(16, 0, 5), Vector(-22, 0, 9), Vector(-18, 0, 9), Vector(-14, 0, 9), Vector(-10, 0, 9), Vector(-6, 0, 9), Vector(-2, 0, 9), Vector(2, 0, 9), Vector(6, 0, 9), Vector(10, 0, 9), Vector(14, 0, 9), Vector(18, 0, 9), Vector(-24, 0, 13), Vector(-20, 0, 13), Vector(-16, 0, 13), Vector(-12, 0, 13), Vector(-8, 0, 13), Vector(-4, 0, 13), Vector(0, 0, 13), Vector(4, 0, 13), Vector(8, 0, 13), Vector(12, 0, 13), Vector(16, 0, 13), Vector(20, 0, 13), Vector(-26, 0, 17), Vector(-22, 0, 17), Vector(-18, 0, 17), Vector(-14, 0, 17), Vector(-10, 0, 17), Vector(-6, 0, 17), Vector(-2, 0, 17), Vector(2, 0, 17), Vector(6, 0, 17), Vector(10, 0, 17), Vector(14, 0, 17), Vector(18, 0, 17), Vector(22, 0, 17)]; //-30, 30, -5, 20

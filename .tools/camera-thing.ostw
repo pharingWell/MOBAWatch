@@ -1,0 +1,45 @@
+import "../customGameSettings.json";
+playervar Vector cameraPos = Vector(0,0,0.1);
+playervar Number blendSpeed;
+playervar Number time;
+
+rule: 'Setup Phase'
+{   
+    StartGameMode();
+    DisableInspectorRecording();
+    SetMatchTime(0);
+    PauseMatchTime();
+}
+
+rule: 'Setup Player'
+Event.OngoingPlayer
+{
+    
+    define i! = -1;
+    ForcePlayerHero(EventPlayer(), Hero.Baptiste);
+    StartCamera(EventPlayer(), cameraPos + Vector(0,0.25,0), cameraPos, blendSpeed);
+    CreateInWorldText(EventPlayer(), $"{TotalTimeElapsed()- time}, {blendSpeed}, {i}", cameraPos+Vector(0,0,0.01), 1, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString, Color.White, Spectators.DefaultVisibility);
+    CreateBeamEffect(EventPlayer(), BeamType.JunkratTrapChainBeam, cameraPos+Up(), cameraPos-Vector(0.001,0,0.001), Color.White, EffectRev.PositionAndRadius);
+    WaitUntil(HasSpawned(),999);
+    blendSpeed = 1;
+    Wait(6);
+    define j = 0;
+    while(true){
+        j = blendSpeed;
+        for(i = 0; i < 4; i++){
+            blendSpeed = 0;
+            cameraPos = Vector(0,0,0.1);
+            Wait(0.1);
+            define k = 1;
+            for(define i2 = 0; i2 < i; i2++){
+                k *= 10;
+            }
+            blendSpeed = j;
+            Wait();
+            cameraPos = cameraPos + Left() * Min(900,k);
+            time = TotalTimeElapsed()+0.016;
+            Wait(20/blendSpeed);
+        }
+        blendSpeed++;
+    }
+}

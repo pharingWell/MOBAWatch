@@ -1,0 +1,38 @@
+import "../customGameSettings.json";
+globalvar Vector[] lines;
+globalvar Vector[] starts;
+globalvar Vector[] ends;
+globalvar String string;
+playervar String s;
+
+rule: "Rule"
+
+{
+    lines = GetLines("../.resources/file.obj");
+    starts = FilteredArray(lines, CurrentArrayIndex() % 2 == 0);
+    ends = FilteredArray(lines, CurrentArrayIndex() % 2 == 1);
+    string = "{ "+vectorArrayToJson("starts",starts)+", "+ vectorArrayToJson("ends",ends)+" }";
+}
+
+rule: 'My Rule'
+Event.OngoingPlayer
+{
+    Wait(1);
+    s = string;
+}
+
+String vectorArrayToJson(String name, Vector[] vectArr){
+    String s = '"'+name+'": [';
+    for(define i! = 0; i < vectArr.Length; i++){
+        s = s + vectorToJson(vectArr[i]);   
+        if(i < vectArr.Length - 1){
+            s = s + ",";
+        }
+    }
+    s = s + "]";
+    return s;
+}
+
+String vectorToJson(Vector v){
+    return '{"x":'+v.X+',"y":'+v.Y+',"z":'+v.Z+"}";
+}

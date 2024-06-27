@@ -1,0 +1,4 @@
+class Statics{
+    public Vector[] points;
+    public Vector position;
+}

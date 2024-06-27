@@ -1,0 +1,117 @@
+import "../../Header Files/hud/effects.del";
+import "../../Header Files/ui.del";
+import "../../Header Files/hud/ux.del";
+Color uiColor(in Number r, in Number g, in Number b): CustomColor(r,g,b,LocalPlayer().showHUD*255);
+rule: 'Global HUD Setup'
+{
+    Wait(2);
+//map
+define uiVis: controllers;
+    CreateInWorldText(uiVis, $"{map}{map2}", uiPos(LocalPlayer(), PANEL_Map.x,PANEL_Map.y), 1.45, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, LocalPlayer().mapColor, Spectators.DefaultVisibility);
+    CreateInWorldText(uiVis, $"{map_inside}", uiPos(LocalPlayer(), getRegion(LocalPlayer(), mapIds[0]).x+getRegion(LocalPlayer(), mapIds[0]).state, getRegion(LocalPlayer(), mapIds[0]).y + getRegion(LocalPlayer(), mapIds[0]).height/2 + mapInside_yOffset + getRegion(LocalPlayer(), mapIds[0]).state2), 1.45, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, LocalPlayer().mapColor, Spectators.DefaultVisibility);
+    CreateInWorldText(controllers, $"[      ]\n[      ]", uiPos(LocalPlayer(), PANEL_Button.x,PANEL_Button.y), 1.45, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, getState(LocalPlayer(), 2) > 1 ? Color.White : getState(LocalPlayer(), 2)  == 0 ? Color.Black : Color.Aqua, Spectators.DefaultVisibility);
+    // CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam, textPosToWorld(LocalPlayer(), PANEL_Button.x-PANEL_Button.halfwidth, PANEL_Button.y), uiToWorld(LocalPlayer(), PANEL_Button.x+PANEL_Button.halfwidth, PANEL_Button.y+PANEL_Button.height), Color.Aqua, EffectRev.VisibleToPositionAndRadius);
+    CreateEffect(uiVis, Effect.Sphere, Color.Aqua, uiToWorld(LocalPlayer(), PANEL_Button.x, PANEL_Button.y));
+//healthbar
+    
+    define uiReev: InworldTextRev.VisibleToPositionStringAndColor;
+    //UpdateEveryFrame(LocalPlayer().showHUD ? LocalPlayer() : null)
+    define scale: 10;
+    define healthBarAnchor: UpdateEveryFrame(uiPos_customDistance(LocalPlayer(),0.80*scale,-0.61*scale, scale));
+    define nameAnchor: UpdateEveryFrame(uiPos_customDistance(LocalPlayer(),1.12*scale,-0.615*scale, scale));
+    define playerIconAnchor: UpdateEveryFrame(uiPos_customDistance(LocalPlayer(), 1.12*scale,-0.56*scale, scale));
+    define spaces: "                                         ";
+    CreateInWorldText(uiVis, $"{getOther(LocalPlayer()).healthbarVars.final}\n{spaces}", healthBarAnchor, 2, Clipping.DoNotClip, uiReev, uiColor(255,255,255), Spectators.DefaultVisibility);
+    Wait();
+    CreateInWorldText(uiVis, $"{getOther(LocalPlayer()).healthbarVars.blank}\n{spaces}", healthBarAnchor , 2, Clipping.DoNotClip, uiReev, uiColor(67,242,82), Spectators.DefaultVisibility);
+    define healthBufferChars: StringSlice("     ", 0, getPlayerInfo(EPlayerInfo.NAME_STRING, LocalPlayer()) > 7 ? 2 : 1);
+    define nameBufferChars: "";// StringSlice("￣￣￣￣", 0, getPlayerInfo(EPlayerInfo.NAME_BUFFER_CHARS, LocalPlayer()));
+    CreateInWorldText(uiVis, $"{healthBufferChars}{getOther(LocalPlayer()).health}｜{getOther(LocalPlayer()).maxHealth}\n\n\n\n\n{nameBufferChars}{getPlayerInfo(EPlayerInfo.NAME_STRING, LocalPlayer())}{nameBufferChars}", nameAnchor, 0.9, Clipping.DoNotClip, uiReev, uiColor(255,255,255), Spectators.DefaultVisibility);
+    CreateInWorldText(uiVis, HeroIconString(HeroOf(LocalPlayer().otherModelMember)), playerIconAnchor, 4, Clipping.DoNotClip, uiReev, uiColor(255,255,255), Spectators.DefaultVisibility);
+    Wait(); 
+   
+
+    
+//cursor
+    define boxWidth: 11;
+    define boxHeight: 6;
+    define boxSize: 2;
+    // CreateInWorldText(LocalPlayer(), makeEffect(boxWidth, boxHeight), uiPos(LocalPlayer(), cursorX(LocalPlayer()),cursorY(LocalPlayer())), boxSize, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, Color.White, Spectators.DefaultVisibility);
+    // CreateInWorldText(LocalPlayer(), makeEffect(boxWidth, boxHeight-1), uiPos(LocalPlayer(), cursorX(LocalPlayer()),cursorY(LocalPlayer())+1*boxSize*0.5), boxSize, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, Color.White, Spectators.DefaultVisibility);
+    // define shadowCursorPosition: uiPos(LocalPlayer(),LocalPlayer().chasedCursorPosition.x(), LocalPlayer().chasedCursorPosition.y());
+    // CreateInWorldText(LocalPlayer(),"•",UpdateEveryFrame(shadowCursorPosition), 2.5, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString, Color.Black);
+
+    define cursorPosition: uiPos(LocalPlayer(),cursorX(LocalPlayer()), cursorY(LocalPlayer()));
+    CreateInWorldText(LocalPlayer(),LocalPlayer().showCursor ? "•" : " ",UpdateEveryFrame(cursorPosition), 2.5, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
+    CreateEffect(LocalPlayer(),Effect.Sphere, Color.Black, UpdateEveryFrame(LocalPlayer().cursorWorldPositon),0.1,EffectRev.VisibleToPositionAndRadius);
+    CreateInWorldText(LocalPlayer(),!IsButtonHeld(LocalPlayer(), Button.Interact) ? "" : $"{HorizontalFacingAngleOf(LocalPlayer())}   {-VerticalFacingAngleOf(LocalPlayer())}",UpdateEveryFrame(cursorPosition), 2.5, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
+    CreateEffect(LocalPlayer(),Effect.Sphere, Color.Aqua, UpdateEveryFrame(LocalPlayer().cursorWorldPositon),0.1,EffectRev.VisibleToPositionAndRadius);
+    CreateInWorldText(LocalPlayer(),!IsButtonHeld(LocalPlayer(), Button.Interact) ? "" : <"<0>",cursorPosition>,UpdateEveryFrame(uiPos(LocalPlayer(),cursorX(LocalPlayer()), cursorY(LocalPlayer())-4)), 2.5, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
+    CreateEffect(LocalPlayer(),Effect.Sphere, Color.Aqua, UpdateEveryFrame(textPosToWorld(LocalPlayer(), cursorX(LocalPlayer()), cursorY(LocalPlayer()))),0.09,EffectRev.VisibleToPositionAndRadius);
+
+}
+
+
+void setName(in Any nameIn, in Player p = EventPlayer()){
+    setPlayerInfo(EPlayerInfo.NAME_STRING, <"<0>",nameIn>, p);
+    Number maxWidth: 14;
+    define len: StringLength(getPlayerInfo(EPlayerInfo.NAME_STRING, p));
+    setPlayerInfo(EPlayerInfo.NAME_BUFFER_CHARS, len > 8 ? 1 : len > 4 ? 2 : 3 , p);
+}
+
+/*
+TO DEBUG
+Here are some options:
+   1. Wait for references
+   2. Copy the code and replace all instances of _String], _Number] and healthbarVars[EHealthBarVars. with nothing 
+   3. Know what the code does
+*/
+void updateHealthBar(in Player p = EventPlayer())
+{
+    
+    healthbarVars.hpPerBlock = 25;
+    healthbarVars.blocks = RoundToInteger(p.maxHealth/healthbarVars.hpPerBlock,Rounding.Down);
+    while(healthbarVars.blocks > 35){
+        healthbarVars.hpPerBlock *= 6;
+        healthbarVars.blocks = RoundToInteger(p.maxHealth/healthbarVars.hpPerBlock,Rounding.Down);
+        Wait();
+    }
+    
+    healthbarVars.id = hpbar_dictionary[healthbarVars.blocks];
+
+    String hpbar_sep: hpbar_symbols[healthbarVars.id][4];
+    String blank_sep: ' ';
+    Number blocksAtWhichBlankSepIsInvalid: 26;
+    healthbarVars.blankTemp = "";
+    healthbarVars.finalTemp = "";
+    for (healthbarVars.iterator = 0; healthbarVars.iterator < healthbarVars.blocks; healthbarVars.iterator++){
+
+        if(healthbarVars.iterator % hpbar_groupings[healthbarVars.id] == 0 && healthbarVars.iterator != 0){
+            if(healthbarVars.blocks < blocksAtWhichBlankSepIsInvalid){
+                healthbarVars.finalTemp = $"{healthbarVars.finalTemp}{blank_sep}";
+            }else{
+                healthbarVars.finalTemp = $"{healthbarVars.finalTemp}{hpbar_symbols[healthbarVars.id][3]}";
+            }
+            healthbarVars.blankTemp = $"{healthbarVars.blankTemp}{hpbar_sep}";
+        }
+
+        healthbarVars.remainingHealth = p.health-healthbarVars.iterator*healthbarVars.hpPerBlock;
+        if(healthbarVars.remainingHealth >= healthbarVars.hpPerBlock){
+            healthbarVars.finalTemp = $"{healthbarVars.finalTemp}{hpbar_symbols[healthbarVars.id][0]}";
+        }else if (healthbarVars.remainingHealth <= 0){
+            healthbarVars.finalTemp = $"{healthbarVars.finalTemp}{hpbar_symbols[healthbarVars.id][3]}";
+        }else{
+            healthbarVars.finalTemp = $"{healthbarVars.finalTemp}{hpbar_symbols[healthbarVars.id][3-RoundToInteger(3*healthbarVars.remainingHealth/healthbarVars.hpPerBlock, Rounding.Up)]}";
+        }
+
+        healthbarVars.blankTemp = $"{healthbarVars.blankTemp}{hpbar_symbols[healthbarVars.id][3]}";
+    }
+   
+    if(healthbarVars.blocks < blocksAtWhichBlankSepIsInvalid){
+        healthbarVars.finalTemp = $"{blank_sep}่{healthbarVars.finalTemp}{blank_sep}่";
+    }else{
+        healthbarVars.finalTemp = $"{hpbar_symbols[healthbarVars.id][3]}่{healthbarVars.finalTemp}{hpbar_symbols[healthbarVars.id][3]}่";
+    }
+    p.healthbarVars.final = healthbarVars.finalTemp;
+    p.healthbarVars.blank = $"{hpbar_sep}่{healthbarVars.blankTemp}{hpbar_sep}่";
+}

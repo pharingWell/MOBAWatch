@@ -1,0 +1,49 @@
+import "debug.ostw";
+import "Header Files/ui.del";
+import "Header Files/grid.del";
+import "Header Files/main.del";
+import "Source Files/grid.ostw";
+
+
+void assert<T>(in String testName, in T actual, in T expected){
+    if(actual == expected){
+        return;
+    }
+    throwError(
+        {message: $"Test \"{testName}\"  failed.\n Expected <{expected}>  but recieved <{actual}> ",
+        source: "actual", severity: EErrorSeverity.ERROR});
+}
+
+void assertTrue(in String testName, in Boolean a){
+    assert(testName, a, true);
+} 
+
+void assertFalse(in String testName, in Boolean a){
+    assert(testName, a, false);
+} 
+
+globalvar Boolean setting_testsEnabled = WorkshopSettingToggle("DEBUG", "Run with test suite", true, 0);
+
+Vector test_getCenterOfCell(Number x, Number y): Vector((x+0.5)* CELL_WIDTH, 0 , (y+0.5) * CELL_HEIGHT) + GRID_BASE;
+void test_Grid(){
+    assert("position of cell",positionOfCell(grid.cells[1]),test_getCenterOfCell(1,0));
+    Cell temp!;
+    Cell_byPosition(temp,test_getCenterOfCell(1,0));
+    assert("cell by position",temp,grid.cells[1]);
+    
+}
+
+
+rule: 'Tests'
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+if(setting_testsEnabled)
+{
+    errorThrown = false;
+
+    test_Grid();
+
+    if(!errorThrown){
+        LogToInspector("All Tests Passed Successfully");
+    }
+}

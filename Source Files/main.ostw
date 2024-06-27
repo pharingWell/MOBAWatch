@@ -1,26 +1,84 @@
 import "../customGameSettings.json";
-import "../Header Files/main.del";
-import "../Header Files/state.del";
-import "ui.ostw";
-import "minions.ostw";
-
-rule: 'Create Minion For Host'
-Event.OngoingPlayer
-if(EventPlayer() == HostPlayer())
-{   
+import "features.ostw";
+globalvar String debugString;
+rule: 'Setup Phase'
+{
+    StartGameMode();
+    //DisableInspectorRecording();
+    SetMatchTime(0);
+    PauseMatchTime();
+    READY = true;
     gamePhase = EGamePhase.LOADING;
     gameState[EGamePhase.LOADING] = ELoadingState.RENDER_SETUP;
-    EventPlayer().renderCreatures.ModAppend(new Minion(Team.Team2,EMinionType.RANGED));
-    CreateHudText(LocalPlayer(),TextCount(),gameState[EGamePhase.LOADING],null,Location.Top,0,Color.Aqua,Color.Aqua,null,HudTextRev.VisibleToAndString,Spectators.DefaultVisibility);
-    WaitUntil(gameState[EGamePhase.LOADING] >= ELoadingState.FINISHED, 99);
+    WaitUntil(gameState[EGamePhase.LOADING] >= ELoadingState.FINISHED, 9999);
     gamePhase = EGamePhase.BATTLE;
-    ForcePlayerHero(EventPlayer(),Hero.Ana);
-    WaitUntil(HasSpawned(HostPlayer())==true,999);
+    //printToScreen($"{CountOf(tickOffsetSorted)}",Location.Left,true);
 }
 
 rule: 'Debug Tings'
 {
-    CreateEffect(LocalPlayer(),Effect.Sphere,Color.Aqua,Vector(0,0,10),1,EffectRev.VisibleToPositionRadiusAndColor);
-    Wait(3);
-    SetMatchTime(0);
+    serverLoad();
+    printToScreen("Resources Remaining: "+ClassMemoryRemaining(),Location.Right);
+    //printToScreen(<String>LocalPlayer().cameraPos,Location.Right);
+   printToScreen($"{Vector(cursorX(LocalPlayer()), cursorY(LocalPlayer()))}");
+   printToScreen($"{toString(Entity_list)}:{Entity_list.Length}");
+    printToScreen($"{toString(Entity_cellCoords)}:{Entity_cellCoords.Length}");
+    printToScreen($"{toString(Entity_position)}:{Entity_position.Length}");
+    printToScreen(d);
+    printToScreen(TotalTimeElapsed()%1);
+   // printToScreen($"{toString(LocalPlayer().hudIdList)}, {LocalPlayer().hudAction.actionLocation.getVect()}, {EString_HudInteractionType[LocalPlayer().hudAction.action]}");
+    // printToScreen(EString_HudInteractionType[Loca    Player(). hudAction.action]);
+    // printToScreen($"{getRegion(LocalPlayer(), mapIds[0]).state},{getRegion(LocalPlayer(), mapIds[0]).state2}");
+    // printToScreen($"LEN: {LocalPlayer().hudIdList.Length}");
+    // printToScreen(LocalPlayer().activeHudId);
+    // * RandomInteger(-1, 1)
+    // printToScreen_noRev("Reload to summon minions",Location.Top);
+    // printToScreen("Interact to toggle rendered objects: "+(controllers.Contains(LocalPlayer()) ? "On" : "Off"),Location.Top)
+    // printToScreen_noRev("Left click to move the camera",Location.Top);
+    //printToScreen(toString(MappedArray(LocalPlayer().playerCells,(<Cell>ArrayElement()).id)));
+    //printToScreen("current cell:" + toString_extended(LocalPlayer().playerCells[1].dynamic));
+    //printToS*een("ends:\n\n" + toString_extended(LocalPlayer().edgeEnds));
+    //Mapp  edArray(grid.cells,$"{CurrentArrayIndex()}: {CountOf((<Cell>ArrayElement()).statics)}"))s
+    //printToScreen("rendered creatures: " + toString_extended(LocalPlayer().renderCreatures.Slice(1,LocalPlayer().renderCreatures.Length)));
+    CreateEffect(LocalPlayer(),Effect.Sphere,Color.Aqua,TEAM1_MINION_SPAWN,0.3,EffectRev.VisibleToPositionRadiusAndColor) ;
+    CreateEffect(LocalPlayer(),Effect.Sphere,Color.Red,TEAM2_MINION_SPAWN,0.3,EffectRev.VisibleToPositionRadiusAndColor);
+    CreateEffect(LocalPlayer(),Effect.Sphere,Color.White,LocalPlayer().renderPosition,0.1,EffectRev.VisibleToPositionRadiusAndColor);
+
+    CreateDummyBot(Hero.Ana,Team.Team2,PLAYER_COUNT,Vector(0,0,0), Vector(0,0,0));
+    CreateDummyBot(Hero.Reinhardt,Team.Team1,PLAYER_COUNT,Vector(0,0,3), Vector(0,0,3));
 }
+
+Button CREATE_MINION : Button.Reload;
+rule: 'Create Minion For Host'
+if(IsButtonHeld(HostPlayer(),CREATE_MINION))
+{
+    newWave();
+    //debugString = toString(tickOffsetSorted);
+    WaitUntil(IsButtonHeld(HostPlayer(),CREATE_MINION)==false, 10);
+}
+
+define TOGGLE_CONTROLLER: Button.Melee;
+rule: 'toggle controller state'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
+if(HasSpawned(EventPlayer()))
+if(IsButtonHeld(EventPlayer(), TOGGLE_CONTROLLER))
+{   
+    if(controllers[EventPlayer().ID]){
+        controllers[EventPlayer().ID] = null;
+        otherModelMember = null;
+    }else{
+        controllers[EventPlayer().ID] = EventPlayer();
+        otherModelMember = getPuppet();
+    }
+    WaitUntil(IsButtonHeld(EventPlayer(), TOGGLE_CONTROLLER)==false,999);
+    //StopCamera();
+    //DisableMovementCollisionWithEnvironment(HostPlayer(), true);
+}
+
+// rule: 'update maxeffect count'
+// Event.OngoingPlayer
+// if(CountOf(EventPlayer().edgeStarts)>maxEffectCount)
+// {
+//     maxEffectCount = CountOf(EventPlayer().edgeStarts);
+// }

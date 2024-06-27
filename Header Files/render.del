@@ -1,0 +1,20 @@
+import "state.del";
+import "creature.del";
+import "projectiles/base_projectile.del";
+import "../debug.del";
+import "../const.del";
+playervar Cell[] playerCells = [<Cell>(-1)];
+# edge starts holds vectors representing the starting half of line effects
+playervar Vector[] edgeStarts;
+# edge ends holds vectors representing the terminating half of line effects
+playervar Vector[] edgeEnds;
+playervar Creature[] renderCreatures = [<Creature>(-1)];
+playervar Projectile[] renderProjectiles = [<Projectile>(-1)];
+// playervar Number[][] creatureRenderIndexes;
+// playervar Number[][] projectileRenderIndexes;
+playervar Number[][] staticsRenderIndexes;
+
+define TEXT_SIZE: 2.75;
+define TICK_MAGIC: 1.5;
+
+//globalvar Number maxEffectCount = STATICS_COUNT;

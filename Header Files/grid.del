@@ -1,0 +1,63 @@
+import "entity.del";
+import "statics.del";
+import "render.del";
+import "structures.del";
+import "model/player_controller.del";
+import "../error.ostw";
+import "../const.del";
+class Cell{
+    public Player[] viewers;
+    public Entity[] dynamic;
+    public Statics[] statics;
+    public Number x;
+    public Number z;
+    public Number id;
+    public constructor(in Number x, in Number z){
+        this.x = x;
+        this.z = z;
+        this.id = x+z*GRID_COLUMNS;
+        this.viewers = [];
+        this.dynamic = [];
+        this.statics = [];
+    }
+}
+struct GridStruct{ //only used once
+    public Cell[] cells;
+}
+globalvar GridStruct grid;
+
+
+
+
+
+Vector positionFromGridCoord(in Number xcord, in Number zcord):
+   Vector((xcord + 0.5) * CELL_WIDTH, 0, (zcord + 0.5) * CELL_HEIGHT) 
+    + GRID_BASE;
+
+Vector positionOfCell(in Cell cell): 
+    positionFromGridCoord(cell.x,cell.z);
+
+
+void Cell_byPosition(ref Cell cellptr, in Vector inputPosition)
+{
+    Number xcord! = RoundToInteger((inputPosition-GRID_BASE).X/CELL_WIDTH,Rounding.Down);
+    Number ycord! = RoundToInteger((inputPosition-GRID_BASE).Z/CELL_HEIGHT,Rounding.Down);
+    Cell_fromGridCoord(cellptr, xcord,ycord);
+}
+
+Boolean outOfCellBounds(in Number xcord, in Number zcord): (xcord >= GRID_COLUMNS || xcord < 0 || zcord >= GRID_ROWS || zcord < 0);
+void Cell_fromGridCoord(ref Cell cellptr, in Number xcord, in Number zcord){
+    if(outOfCellBounds(xcord, zcord)){
+        cellptr = null;
+    }else{
+        cellptr = grid.cells[xcord + zcord * GRID_COLUMNS];
+    }  
+}
+
+Cell Cell_fromGridCoord_unsafeInline(in Number xcord, in Number zcord): grid.cells[xcord + zcord * GRID_COLUMNS];
+Number CoordX_byPosition_unsafeInline(in Vector inputPosition): RoundToInteger((inputPosition-GRID_BASE).X/CELL_WIDTH,Rounding.Down);
+Number CoordZ_byPosition_unsafeInline(in Vector inputPosition): RoundToInteger((inputPosition-GRID_BASE).Z/CELL_HEIGHT,Rounding.Down);
+Number TEAM1_MINION_SPAWN_COORDX: CoordX_byPosition_unsafeInline(TEAM1_MINION_SPAWN);
+Number TEAM1_MINION_SPAWN_COORDZ: CoordZ_byPosition_unsafeInline(TEAM1_MINION_SPAWN);
+Number TEAM2_MINION_SPAWN_COORDX: CoordX_byPosition_unsafeInline(TEAM2_MINION_SPAWN);
+Number TEAM2_MINION_SPAWN_COORDZ: CoordZ_byPosition_unsafeInline(TEAM2_MINION_SPAWN);

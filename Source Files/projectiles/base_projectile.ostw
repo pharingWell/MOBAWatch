@@ -1,0 +1,22 @@
+import "../../Header Files/projectiles/base_projectile.del";
+import "../../Header Files/minion.del";
+import "../render.ostw";
+rule: 'Create spinning projectile'
+{
+    Wait(3);
+    // Projectile spinningProjectile! = new Projectile({isStructure: true, creaturePlayerSource:{isPlayer: false, creatureRef: null, playerRef: null}, structureSource: <Structure>null});
+    // // CreateProjectileEffect(LocalPlayer(), ProjectileType.BaptisteBioticLauncher, LocalPlayer(), spinningProjectile.getPosition(), spinningProjectile.getVelocity(), 0, ProjectileEffectReeval.VisibleToPositionDirectionAndSize);
+    
+    // 
+    // spinning
+    Projectile e = new Projectile(null);
+    // CreateEffect(LocalPlayer(), Effect.Sphere, Color.Black,  (TotalTimeElapsed()-e.getTickOffset()+TICK_MAGIC)*e.getVelocity() + Vector(CELL_WIDTH, 0, CELL_HEIGHT) * e.getCellCoord() + GRID_BASE, 0.5, EffectRev.VisibleToPositionAndRadius);
+    e.render = LastCreatedEntity();
+    e.setPosition(Vector());
+    addEntityToCell(Cell_fromGridCoord_unsafeInline(GRID_COLUMNS/2, GRID_ROWS/2), e);
+    while(true){
+        Wait(ENTITY_TICK/4);
+        e.setVelocity(DirectionFromAngles(e.getVelocity().HorizontalAngle-1, 0));
+        updateEntityPosition(e);
+    }
+}

@@ -1,0 +1,32 @@
+import "../Header Files/vision.del";
+import "../Header Files/model/player_controller.del";
+import "../Header Files/ui.del";
+
+define xOffset: 0;
+define zOffset: 0;
+// define vision_isShown(Number index, Player p = LocalPlayer()): p.visionTiles[index] == 0;
+// define visionColor(Number index, Player p = LocalPlayer()): CustomColor(255, 255, 255, p.visionTiles[index]*255);
+define visionEffectWidth: 13; 
+define visionEffectHeight: 6;  
+define visionEffectSlopeShift: 1;
+define visionEffectSlopeShiftScalar: 2.25;
+define visionScale: 4;
+define visionEffect_getYfromIndex(Number index): RoundToInteger((SquareRoot(8*index + 121)-11)/2 , Rounding.Down);
+define visionEffectPosition_index(Number index):  Vector((index % visionEffectWidth)*visionScale+xOffset,3,RoundToInteger(index/visionEffectWidth, Rounding.Up)*visionScale+zOffset);
+define visionEffectPosition(Number i, Number j, Player p = LocalPlayer()): Vector()+EvaluateOnce(Vector((i-(visionEffectWidth-visionEffectHeight+j+visionEffectSlopeShift)/2)*visionScale+xOffset,0,(j+visionEffectSlopeShift*visionEffectSlopeShiftScalar-(visionEffectHeight/2))*visionScale+zOffset));
+rule: 'Vision'
+{
+    Wait(4);
+    define k! = 0;
+    forceLog(" ");
+    for(define j = 0; visionEffectHeight; 1){
+    for (define i = 0; visionEffectWidth-visionEffectHeight+j+visionEffectSlopeShift; 1) { 
+    
+        CreateEffect(controllers, Effect.Cloud,CustomColor(255, 255, 255, LocalPlayer().visionTiles[k]*255), visionEffectPosition(i, j), 0.05, EffectRev.PositionRadiusAndColor);
+                Wait(0.032);
+            forceLog($"{k}: {visionEffectPosition(i, j)}");
+            k++;
+        }
+        Wait(0.032);
+    }
+}

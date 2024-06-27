@@ -1,0 +1,198 @@
+import "../global.ostw";
+import "../debug.del";
+import "grid.ostw";
+import "../Header Files/ui.del";
+import "../Header Files/render.del";
+import "../Header Files/model/player_controller.del";
+
+rule: 'Global Render Setup' 
+if(gameState[EGamePhase.LOADING] == ELoadingState.RENDER_SETUP)
+{
+   # todo
+    # projectile collision and visibility: make projectiles visible according to the people who can see it -> figure out vision. In the meantime, use an array that stores who can see the projectile. then display that projectile to those people. 
+    # So, figure out vision, and figure out complex collision. Also, implement simple collision
+    
+    async gridConstructor();
+    Wait(0.5);
+    define i!;
+    for(i = 1; i <= TEXT_COUNT; i++){
+        Creature creature: LocalPlayer().renderCreatures[EvaluateOnce(i)];
+        Number tick: (TotalTimeElapsed()-creature.getTickOffset()+TICK_MAGIC);
+
+        if(SHOW_ENTITY_PROJECTEDLOC){
+            CreateInWorldText(
+                creature.visibility ? controllers : null,
+                creature.appearance,
+                creature.getPosition() + tick*creature.getVelocity() + Vector(CELL_WIDTH, 0, CELL_HEIGHT) * creature.getCellCoord() + GRID_BASE,
+                TEXT_SIZE, 
+                Clipping.DoNotClip, 
+                InworldTextRev.VisibleToPositionStringAndColor,
+                creature.color, 
+                Spectators.DefaultVisibility   
+            );
+        }
+        /* if(SHOW_ENTITY_TRUELOC){ //this should be disabled unless debugging, in which case, TEXT_COUNT should be halved
+            CreateInWorldText(
+                creature.visibility ? controllers : null,
+                creature,
+                creature.position,
+                TEXT_SIZE, 
+                Clipping.DoNotClip, 
+                InworldTextRev.VisibleToPositionStringAndColor,
+                CustomColor(0,0,0,50), 
+                Spectators.DefaultVisibility   
+            );
+        }*/
+    }
+    for(i = 1; i < STATICS_COUNT; i++){
+        Vector edge_start: LocalPlayer().edgeStarts[EvaluateOnce(i)];
+        Vector edge_end: LocalPlayer().edgeEnds[EvaluateOnce(i)];
+        CreateBeamEffect(controllers,BeamType.BrigitteFlailChainBeam,edge_start,edge_end,Color.Black,EffectRev.VisibleToPositionAndRadius);
+    }
+    progressState();
+}
+
+// Grid render loop is found in async.ostw
+
+//ADD
+
+//, ref Number[] renderIndexContainer
+void addEntityToViewer( 
+    ref Any[] renderBuffer, 
+    in Number ID, in Cell cell, in Entity e
+){      
+    if(e == null){
+        return;
+    }    
+    define indexOfFirstNull! = 1;
+    while(renderBuffer[indexOfFirstNull] != null){
+        indexOfFirstNull++;
+    }
+    //renderIndexContainer += indexOfFirstNull;
+    //e.viewerIndex[ID] = indexOfFirstNull;
+    renderBuffer[indexOfFirstNull] = e;
+}
+//EventPlayer().creatureRenderIndexes[cell.id]
+void addEntityToViewer(Cell cell, Entity e){
+    if(e.subclass == EEntitySubclass.CREATURE){
+        addEntityToViewer(EventPlayer().renderCreatures,EventPlayer().ID,cell,e);
+    }else if(e.subclass == EEntitySubclass.PROJECTILE){
+        addEntityToViewer(EventPlayer().renderProjectiles,EventPlayer().ID,cell,e);
+    } 
+}
+
+void addEntityToCell(Cell cell, Entity e) "Add Entity To Cell"
+{   
+    cell.dynamic.ModAppend(e);
+    foreach(Player player! in cell.viewers){
+        if(e.subclass == EEntitySubclass.CREATURE){
+            addEntityToViewer(player.renderCreatures,player.ID, cell, e);
+        }else if(e.subclass == EEntitySubclass.PROJECTILE){
+            addEntityToViewer(player.renderProjectiles,player.ID, cell, e);
+        }
+    }
+    e.setCellCoord(cell.x, cell.z);
+}
+
+void addAllStaticsInCellToViewer(in Player player, in Cell cell){
+    
+    Number[] renderIndexesTemp! = [];
+    foreach(Statics s in cell.statics){
+        define indexOfFirstNull! = 1;
+        for(define i! = 0; i < s.points.Length/2; i++){
+            while(player.edgeStarts[indexOfFirstNull] != null){
+                indexOfFirstNull++;
+            }
+            player.edgeStarts[indexOfFirstNull] = s.points[i*2]+s.position;
+            player.edgeEnds[indexOfFirstNull] = s.points[i*2+1]+s.position;
+            renderIndexesTemp += indexOfFirstNull;
+            indexOfFirstNull++;
+        }
+    }
+    player.staticsRenderIndexes[cell.id] = renderIndexesTemp;
+}
+
+//REMOVE
+//, ref Number[][] renderIndexContainer
+private void removeEntityFromViewer(
+    ref Any[] renderBuffer,
+    in Number ID, in Cell cell, in Entity e
+){
+    // Number indexOfRenderData: e.viewerIndex[ID];
+    // renderIndexContainer[cell.id] -= indexOfRenderData;
+    renderBuffer[renderBuffer.IndexOf(e)] = null;
+    //e.viewerIndex[ID] = null; //must be last
+}
+
+//todo: remove entity from cell
+
+private void removeAllStaticsInCellFromViewer(in Player player, in Cell cell){
+    for(define i! = 0; i < player.staticsRenderIndexes[cell.id].Length; i++){
+        define index: player.staticsRenderIndexes[cell.id][i];
+        player.edgeStarts[index] = null;
+        player.edgeEnds[index] = null;
+    }
+    player.staticsRenderIndexes[cell.id] = null;
+}
+
+void removeEntityFromCell(Cell cell, Entity entity){
+    cell.dynamic -= entity;
+    foreach(Player p! in cell.viewers){
+        if(entity.subclass == EEntitySubclass.CREATURE){
+            removeEntityFromViewer(p.renderCreatures,p.ID,cell,entity);
+        }else if(entity.subclass == EEntitySubclass.PROJECTILE){
+            removeEntityFromViewer(p.renderProjectiles,p.ID,cell,entity);
+        }
+    }
+}
+
+//MOVE
+
+void moveEntityBetweenCells(Entity e, Cell from, Cell to) "move Entity between Cells"
+{
+    
+    Player[] addEntityTo! = FilteredArray(to.viewers, !from.viewers.Contains(ArrayElement()));
+    Player[] moveEntityBetween = FilteredArray(to.viewers, from.viewers.Contains(ArrayElement()));
+    Player[] removeEntityFrom! = FilteredArray(from.viewers, !to.viewers.Contains(ArrayElement()));
+    
+    if(from.dynamic.Contains(e)){
+        from.dynamic -= e;
+    }else{
+        throwError({message: $"Tried to move entity {e}  between cells {from}  and {to}  but was wasn't in source cell", source: "moveEntityBetweenCells", severity: EErrorSeverity.WARNING});
+        return;
+    }
+    foreach(Player p! in addEntityTo){
+        if(e.subclass == EEntitySubclass.CREATURE){
+            addEntityToViewer(p.renderCreatures,p.ID,to,e);
+        }else if(e.subclass == EEntitySubclass.PROJECTILE){
+            addEntityToViewer(p.renderProjectiles,p.ID,to,e);
+        }
+    }
+    // foreach(Player p! in moveEntityBetween){
+    //     Number index: e.viewerIndex[p.ID];
+    //     if(e.subclass == EEntitySubclass.CREATURE){
+    //         p.creatureRenderIndexes[from.id] -= index;
+    //         p.creatureRenderIndexes[to.id] += index;
+    //     }else if(e.subclass == EEntitySubclass.PROJECTILE){
+    //         p.projectileRenderIndexes[from.id] -= index;
+    //         p.projectileRenderIndexes[to.id] += index;
+    //     }
+    // }
+    foreach(Player p! in removeEntityFrom){
+        if(e.subclass == EEntitySubclass.CREATURE){
+            removeEntityFromViewer(p.renderCreatures,p.ID,from,e);
+        }else if(e.subclass == EEntitySubclass.PROJECTILE){
+            removeEntityFromViewer(p.renderProjectiles,p.ID,from,e);
+        }
+    }
+    to.dynamic += e;
+    e.setCellCoord(to.x, to.z);
+}
+
+
+//Update cells is called async only and is thus in async.ostw 
+
+void updateEntityPosition(in Entity e){
+    e.setPosition(e.getPosition() + e.getVelocity() * (TotalTimeElapsed()-e.getTickOffset()));
+    e.setTickOffset(TotalTimeElapsed());
+}

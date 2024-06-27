@@ -1,0 +1,36 @@
+import "global.del";
+
+struct Dictionary<K, V>
+{
+    public K[] Keys;
+    public V[] Values;
+
+    public V Get(K key): Values[Keys.IndexOf(key)];
+    
+    // Sets a value in the dictionary.
+    public static void Set(ref Dictionary<K, V> dictionary, in K key, in V value)
+    {
+        dictionary.Values[dictionary.Keys.IndexOf(key)] = value;
+    }
+    
+    // Adds a value to the dictionary.
+    public static void Add(ref Dictionary<K, V> dictionary, in K key, in V value)
+    {
+        dictionary.Keys += key;
+        dictionary.Values += value;
+    }
+
+    // Sets a value in the dictionary. Will add the key if it doesn't exist.
+    public static void SetOrAdd(ref Dictionary<K, V> dictionary, in K key, in V value)
+    {
+        Number index = dictionary.Keys.IndexOf(key);
+        if (index == -1) // Key not found; add it.
+            Add(dictionary, key, value);
+        else
+            dictionary.Values[index] = value;
+    }
+}
+
+
+
+

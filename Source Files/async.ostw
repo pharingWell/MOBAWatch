@@ -1,0 +1,78 @@
+import "grid.ostw";
+import "../Header Files/async.del";
+
+rule: 'Grid Render Loop'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
+if(gameState[EGamePhase.LOADING] > ELoadingState.RENDER_SETUP)
+if(READY == true)
+{
+    LOCK = true;
+    async_workaround_updateCells = true;
+    //async updateCells();
+    LOCK = false;
+    Wait(0.4);
+    Loop();
+}
+
+
+
+
+/// SUBROUTINES ///
+
+
+//void updateCells() "Update Observed Cells"
+rule: "Update Observed Cells"
+Event.OngoingPlayer
+if(!IsDummyBot())
+if(EventPlayer().async_workaround_updateCells == true)
+{
+    EventPlayer().async_workaround_updateCells = false;
+    Cell[] observedCells;
+    getAllCellsOnScreen(observedCells,renderPosition);
+    Cell[] noLongerObservedCells! = FilteredArray(EventPlayer().playerCells, !ArrayContains(observedCells,ArrayElement()));
+    Cell[] newlyObservedCells! = FilteredArray(observedCells, !ArrayContains(EventPlayer().playerCells,ArrayElement()));
+    if(noLongerObservedCells.Length > 0){
+        foreach(Cell cell! in noLongerObservedCells){
+        removeAllStaticsInCellFromViewer(EventPlayer(),cell);
+        foreach(Entity e! in cell.dynamic){
+            if(e.subclass == EEntitySubclass.CREATURE){
+                removeEntityFromViewer(EventPlayer().renderCreatures,EventPlayer().ID,cell,e);
+            }else if(e.subclass == EEntitySubclass.PROJECTILE){
+                removeEntityFromViewer(EventPlayer().renderProjectiles,EventPlayer().ID,cell,e);
+            }   
+        }
+        cell.viewers -= EventPlayer();
+    }
+    }
+    if(newlyObservedCells.Length > 0){
+       
+        for(define i! = 0; i < newlyObservedCells.Length; i++){
+             define cell: newlyObservedCells[i];
+                addAllStaticsInCellToViewer(EventPlayer(),cell);
+                cell.viewers += EventPlayer();
+                // Number[] creatureRenderTemp = []; //EventPlayer().creatureRenderIndexes
+                // Number[] projectileRenderTemp = []; //EventPlayer().projectileRenderIndexes
+                foreach(Entity e! in cell.dynamic){
+                    if(e.subclass == EEntitySubclass.CREATURE){
+                        addEntityToViewer(EventPlayer().renderCreatures,EventPlayer().ID,cell,e);
+                    }else if(e.subclass == EEntitySubclass.PROJECTILE){
+                        addEntityToViewer(EventPlayer().renderProjectiles,EventPlayer().ID,cell,e);
+                    }
+                    else{
+                        throwError({message: "can't add entity without subclass",source: "newly observed cells",severity: EErrorSeverity.ERROR});
+                    }
+                }
+                // EventPlayer().creatureRenderIndexes[cell.id] = creatureRenderTemp;
+                // EventPlayer().projectileRenderIndexes[cell.id] = projectileRenderTemp;
+                if(i % CELLS_BEFORE_DELAY == 0){
+                    Wait();
+                }
+        }
+    }
+//todo: an observable list of cells per team
+    EventPlayer().playerCells = observedCells;
+    Wait();
+    LoopIfConditionIsTrue();
+
+}

@@ -1,31 +1,68 @@
 import "../Header Files/ui.del";
 import "../Header Files/state.del";
-import "../Header Files/creature.del";
+import "../Header Files/vision.del";
+import "../Header Files/main.del";
+import "../debug.ostw";
+import "../debug.del";
 
-define RENDER_SIZE: 50;
-playervar Creature[] renderCreatures;
 
-rule: 'Render_Setup' 
-if(gameState[EGamePhase.LOADING] == ELoadingState.RENDER_SETUP)
+rule: 'Player Camera Setup'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
 {
-    for(define i = 0; i < RENDER_SIZE; i++){
-        Creature creature: LocalPlayer().renderCreatures[EvaluateOnce(i)];
-        Number tick: (TotalTimeElapsed()-creature.tickOffset)%1;
-        CreateInWorldText(
-            creature.visibility ? LocalPlayer() : null,
-            creature.appearance,
-            creature.position + tick*creature.velocity,
-            3, 
-            Clipping.DoNotClip, 
-            InworldTextRev.VisibleToPositionStringAndColor,
-            creature.color, 
-            Spectators.DefaultVisibility   
-        );
+    DisableGameModeHud();
+    StartCamera(EventPlayer(),cameraEye(EventPlayer()),cameraPosition(EventPlayer()),CAMERA_INTERP);
+    //ChaseVariableAtRate(EventPlayer().cursorWorldPositon,,99999,RateChaseReevaluation.DestinationAndRate);
+    WaitUntil(HasSpawned(EventPlayer())==true,9999);
+    cameraPos = Vector(0,40,1);
+    WaitUntil(READY==true,999);
+    cameraPos = Vector(0,0,1);
+    renderPosition = Vector(0,0,1);
+}
 
-        /*
-             
-        */
+rule: 'Toggle Camera Lock'
+Event.OngoingPlayer
+if(getPlayerInfo(EPlayerInfo.IS_READY))
+if(IsButtonHeld(EventPlayer(), BUTTON_CAMERA))
+{
+    WaitUntil(IsButtonHeld(EventPlayer(), BUTTON_CAMERA) == false, 0.3);
+    if(IsButtonHeld(EventPlayer(), BUTTON_CAMERA) == false){
+        if(isCameraLocked){
+            teleportCamera(otherModelMember.Position());
+            if(viewingMap){
+                viewingMap = false;
+            }
+        }
+        isCameraLocked = !isCameraLocked;
+        Abort();
     }
-    progressState();
-    
+    CreateEffect(EventPlayer(), Effect.LightShaft, Color.Blue, otherModelMember.Position()*Vector(1,0,1), otherModelMember.heroSize, EffectRev.PositionAndRadius);
+    define cameraLockEffect! = LastCreatedEntity();
+    teleportCamera(otherModelMember.Position());
+    ChaseVariableAtRate(cameraPos, otherModelMember.Position(), 99999, RateChaseReevaluation.DestinationAndRate);
+    WaitUntil(!IsButtonHeld(EventPlayer(), BUTTON_CAMERA), 999);
+    StopChasingVariable(cameraPos);
+    DestroyEffect(cameraLockEffect);
+}
+
+define log(Number x): (10000 * (RaiseToPower(x, 0.0001) - 1));
+
+# Caution! There is a 2 tick wait between when the variable is set and when it gets teleported
+void teleportCamera(in Vector newPosition){
+    EventPlayer().visionTiles = MappedArray(visionTiles,1);
+    //showHUD = 0;
+    //async_workaround_updateCells = true;
+    //Wait(0.032);
+    //define numerator! = 1+2*log(DistanceBetween(cursorWorldPositon, cameraPos));
+    EventPlayer().loading = true;
+    EventPlayer().renderPosition = newPosition;
+    Wait(0.032);
+    EventPlayer().cameraPos = renderPosition;
+    Wait(0.25);
+     EventPlayer().loading = false;
+    //Visible_Team1[0] = newPosition;
+    //Wait(numerator/CAMERA_INTERP);
+    //ChaseVariableOverTime(showHUD, 1, 8/CAMERA_INTERP, TimeChaseReevaluation.None);
+    //showHUD = 1;
+    //Wait(8/CAMERA_INTERP);
 }

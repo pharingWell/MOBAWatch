@@ -1,8 +1,0 @@
-import "../Header Files/minions.del";
-
-rule: "Minion Wave"
-if(gameState[EGamePhase.PREBATTLE] == EPreBattleState.FINISHED){
-    while(gameState[EGamePhase.BATTLE] < EBattleState.FINISHED){
-        
-    }
-}

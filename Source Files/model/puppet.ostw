@@ -1,0 +1,111 @@
+import "../../Header Files/model/puppet.del";
+import "model.ostw";
+import "../../Header Files/hud/effects.del";
+import "../../Header Files/hud/actions/map.del";
+import "../hud/effects.ostw";
+
+  define mapCoordShift(Number shift = 0):  uiPos(LocalPlayer(), PositionOf().X/xMult + getRegion(LocalPlayer(), mapIds[0]).x, PositionOf().Z/yMult + getRegion(LocalPlayer(), mapIds[0]).y + shift + getRegion(LocalPlayer(), mapIds[0]).height/2);
+
+rule: 'Puppet Setup'
+Event.OngoingPlayer
+if(IsDummyBot())
+if(isSetup())
+{
+    heroSize = heroSizes[IndexOfArrayValue(AllHeroes(), HeroOf())];
+    define size: 0.9;
+    define healthBarSocket: UpdateEveryFrame(EyePosition()) + Vector(0,0.27,0.44); //+ Vector(0,0.22,0.39); //0.45
+    define healthBarTitleSocket: healthBarSocket- Vector(0,0.02,0.0346); //UpdateEveryFrame(EyePosition()) + Vector(0,0.395,0.656);//Vector(0,0.35,0.55); //0.7
+    //vect(0,0.1,0.173) //0.2, 0.346
+    printToScreen(EventPlayer().health);
+    setName(HeroOf());
+
+    # Only display if they are: alive, ready and either on the same team as the player or visible.
+    define shouldBeVisible: IsAlive() && getPlayerInfo(EPlayerInfo.IS_READY) &&
+    (getPlayerInfo(EPlayerInfo.VISIBLE)|| TeamOf(LocalPlayer()) == TeamOf(EventPlayer()));
+    define visibility: shouldBeVisible ? controllers : null;
+    define teamSpecificColor:
+        shouldBeVisible
+            ? (getPuppet(LocalPlayer()) == EventPlayer()
+                ? Color.Green
+                : getPlayerInfo(EPlayerInfo.TEAM_NUM) == 0
+                    ? Color.Team1
+                    : Color.Team2
+            )
+            : null
+    ;
+    define BarColor: shouldBeVisible ? Color.White : null;
+    define bufferChars: StringSlice("＿＿＿", 0, getPlayerInfo(EPlayerInfo.NAME_BUFFER_CHARS));
+    define iconSize: 1.2;
+    define mapIconVisiblity: !startedMoving ? LocalPlayer() : null;
+    //define mapIconVisiblity:  !startedMoving) ? LocalPlayer() : null;
+    CreateInWorldText(mapIconVisiblity, "▒", mapCoordShift(0.12), iconSize*1.2, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor, teamSpecificColor);
+    CreateInWorldText(mapIconVisiblity, HeroIconString(HeroOf()),mapCoordShift(), 1, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndColor,  shouldBeVisible ? Color.White : null);
+
+    CreateInWorldText(visibility, healthbarVars.final, healthBarSocket, 0.9, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, BarColor, Spectators.DefaultVisibility);
+    Wait();
+    CreateInWorldText(visibility, healthbarVars.blank, healthBarSocket, size, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, teamSpecificColor, Spectators.DefaultVisibility);
+    CreateInWorldText(visibility, $"{bufferChars}{getPlayerInfo(EPlayerInfo.NAME_STRING)}{bufferChars}\n", healthBarTitleSocket, size, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, teamSpecificColor, Spectators.DefaultVisibility);
+    WaitUntil(HasSpawned(), 9999);
+    maxHealth = MaxHealth()+400;
+    Wait();
+    health = maxHealth/2;
+    setPlayerInfo(EPlayerInfo.VISIBLE, false);
+    updateHealthBar();
+    while(false){
+
+        if(HeroOf() == Hero.Ana){
+            PressButton(EventPlayer(), Button.PrimaryFire);
+            Wait();
+            SetAmmo(EventPlayer(), 0, 100);
+        }else{
+            define puppetAbilitybutton: Button.Ability2;
+            PressButton(EventPlayer(), puppetAbilitybutton);
+            Wait();
+            SetAbilityCooldown(EventPlayer(),puppetAbilitybutton, 0);
+        }
+        Wait();
+    }
+
+
+    // while(true){
+    //     //StartThrottleInDirection(EventPlayer(), Left(), 200/maxHealth, Relative.ToPlayer, ThrottleBehavior.ReplaceExistingThrottle, ThrottleRev.None);
+    //     while(health < maxHealth){
+    //         health += 5;
+    //         updateHealthBar();
+    //         Wait(0.032);
+    //     }
+    //     maxHealth += 25;
+    //     //StartThrottleInDirection(EventPlayer(), Right(), 200/maxHealth, Relative.ToPlayer, ThrottleBehavior.ReplaceExistingThrottle, ThrottleRev.None);
+    //     while(health > 0){
+    //         health -= 5;
+    //         updateHealthBar();
+    //         Wait(0.032);
+
+    //     }
+    //     maxHealth += 25;
+    // }
+}
+
+rule: 'When Ready'
+Event.OngoingPlayer
+if(IsDummyBot())
+if(READY)
+{
+    WaitUntil(isSetup(), 1000);
+    setPlayerInfo(EPlayerInfo.IS_READY, true);
+    setPlayerInfo(EPlayerInfo.VISIBLE, true);
+}
+
+rule: 'Hide'
+Event.OngoingPlayer
+if(IsDummyBot())
+if(READY)
+{
+    WaitUntil(getPlayerInfo(EPlayerInfo.VISIBLE) != EvaluateOnce(getPlayerInfo(EPlayerInfo.VISIBLE)), 99999);
+    if(getPlayerInfo(EPlayerInfo.VISIBLE)){
+        SetInvisible(EventPlayer(), InvisibleTo.None);
+    }else{
+        SetInvisible(EventPlayer(), InvisibleTo.Enemies);
+    }
+    Loop();
+}

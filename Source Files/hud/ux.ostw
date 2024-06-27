@@ -1,0 +1,81 @@
+import "../../Header Files/hud/ux.del";
+import "../../Header Files/main.del";
+import "../../Header Files/ui.del";
+import "../../const.del";
+import "../../error.ostw";
+import "../../Header Files/async.del";
+import "actions/map.ostw";
+import "actions/button.ostw";
+
+#todo: define objects in relation to their centerpoint, width and height
+define mouseNotStill: chasedCursorPosition != Vector(cursorX(), cursorY());
+
+rule: 'Static Cursor Position'
+Event.OngoingPlayer
+if(mouseNotStill)
+{
+    chasedCursorPosition = cursor_Vect2D;
+    actionConditions[EActionConditions.MOUSE_STILL] = false;
+   // actionConditions[EActionConditions.HOVER_AVAILABLE] = false;
+    Wait(HUD_UPDATE_DELAY, WaitBehavior.RestartWhenTrue);
+    hudIdList = SortedArray(unsortedIdsUnderCursor(), hudRegions[ArrayElement()].zOrder);
+    //actionConditions[EActionConditions.HOVER_AVAILABLE] = true;
+    define actionTaken: hudAction.action != EHudInteractionType.NONE;
+    WaitUntil(actionTaken || mouseNotStill, HOVER_DELAY);
+    if(mouseNotStill){
+        Loop();
+    }else if(!actionTaken){
+        hudAction = {actionLocation: cursor_Vect2D, action: EHudInteractionType.HOVER};
+        triggerAction();
+    }
+    Wait(9999, WaitBehavior.RestartWhenTrue);
+    Loop();
+}
+
+void triggerAction(){
+    Number[] temp! = FilteredArray(hudIdList, hudRegions[<Number>ArrayElement()].acceptedActions.Contains(hudAction.action))[0];
+    if(temp == null){
+        consumeInput();
+        Abort();
+    }else{
+        activeHudId = temp;
+    }
+    
+}
+
+
+//todo: problem is that the well designed mouse still loop is causing hud action to retrigger.
+
+rule: 'Detect HUD Action'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
+if(HasSpawned(EventPlayer()))
+if (IsButtonHeld(EventPlayer(), Button.PrimaryFire) || IsButtonHeld(EventPlayer(), Button.SecondaryFire))
+{
+
+    Button button! = null;
+    EHudInteractionType action!;
+    if(IsButtonHeld(EventPlayer(), Button.PrimaryFire)){
+        button = Button.PrimaryFire;
+    }else if(IsButtonHeld(EventPlayer(), Button.SecondaryFire)){
+        button = Button.SecondaryFire;
+    }
+    define buttonHeld: IsButtonHeld(EventPlayer(),button)==false;
+    WaitUntil(buttonHeld, HELD_DELAY);
+    if(buttonHeld){
+        if(button == Button.PrimaryFire){
+            action = EHudInteractionType.LCLICK;
+        }else{
+            action = EHudInteractionType.RCLICK;
+        }
+    }else{ //button still held
+        if(button == Button.PrimaryFire){
+            action = EHudInteractionType.LHELD;
+        }else{
+            action = EHudInteractionType.RHELD;
+        }
+    }
+    hudAction = {actionLocation: Vector(cursorX(),cursorY()), action: action};
+    triggerAction();
+    Wait(0.064);
+}

@@ -1,1 +1,105 @@
+import "../global.ostw";
+import "../debug.ostw";
+import "render.ostw";
+import "../Header Files/main.del";
+import "../Header Files/ui.del";
 import "../Header Files/grid.del";
+
+void gridConstructor() "Grid Constructor"
+{
+    for(define i! = 0; i < 6; i++){ //add 6 blank cells for debug purposes
+        new Cell(-1,-1); //discard a cell for "null"
+    }
+    for(define j! = 0; j < GRID_COLUMNS * GRID_ROWS; j++){
+        
+        Number x: j%GRID_COLUMNS;
+        Number z: RoundToInteger(j/GRID_COLUMNS, Rounding.Down);
+        grid.cells[j] = new Cell(x,z);
+    //DEBUG
+        // 
+        // Creature c! = new Creature();
+        // c.appearance = $"{j}: {grid.cells[j]}";
+        // c.position = positionOfCell(grid.cells[j]);
+        // c.visibility = true;
+        // addEntityToCell(grid.cells[j],c);
+
+        // Creates "X" out of lines to test grid system
+        Statics s! = new Statics();
+        Vector bottomCorner! = GRID_BASE + Vector(CELL_WIDTH * grid.cells[j].x, 0, CELL_HEIGHT * grid.cells[j].z);
+        s.points = [Vector(0,0,0),Vector(CELL_WIDTH,0,CELL_HEIGHT),Vector(0,0,CELL_HEIGHT),Vector(CELL_WIDTH,0,0),Vector(0,0,0),Vector(CELL_WIDTH,0,0),Vector(0,0,0),Vector(0,0,CELL_HEIGHT)]; //,Vector(CELL_WIDTH,0,0),Vector(CELL_WIDTH,0,CELL_HEIGHT),Vector(0,0,CELL_HEIGHT),Vector(CELL_WIDTH,0,CELL_HEIGHT)
+        s.position = bottomCorner;
+        grid.cells[j].statics += s;
+        Wait(0.032);
+    }
+    Wait(1);
+    addStructures();
+    Wait();
+    READY = true;
+}
+
+void getAllCellsOnScreen(ref Cell[] retCells, in Vector position){
+    retCells = [];
+    // Cell given!;
+    // Cell_byPosition(given,position);
+    // for(define i! = 4; i > 0; i--){
+    //     for(define j! = -Min(3,i); j <= Min(3,i); j++){
+    //         Cell temp!;
+    //         Cell_fromGridCoord(temp, given.x+j,given.y-2+i); //a 7 length row 1 and 2 rows ahead of 
+    //         if (temp != null && !retCells.Contains(temp)){
+    //             retCells.ModAppend(temp);
+    //         }
+    //     }
+    // }
+    Cell cell!;
+    Vector currentCellPosition!;
+    for(define row! = -1; row < 3; row++){
+        currentCellPosition = position+Vector(0,0,row*CELL_HEIGHT-0.01);
+        for(define j! = 0; j < Min(3,row+3); j++){
+            Cell_byPosition(cell,currentCellPosition + Vector(CELL_WIDTH*j+CELL_WIDTH/2-0.01,0,0));//
+            if(cell!=null && !retCells.Contains(cell)){
+                retCells.ModAppend(cell);
+            }//
+        }
+        for(define j! = 0; j < Min(3,row+3); j++){
+            Cell_byPosition(cell,currentCellPosition - Vector(CELL_WIDTH*j+CELL_WIDTH/2+0.01,0,0));
+            if(cell!=null && !retCells.Contains(cell)){
+                retCells.ModAppend(cell);
+            }
+        }
+        Wait();
+        
+    }
+        
+}
+
+void addCellInDirection_View(ref Cell[] retCells, in Vector position, ref Vector pos, in Vector scalar){
+    Cell ptr!;
+    pos = position + Vector(CELL_WIDTH/3,0,CELL_HEIGHT/3) * scalar;
+    Cell_byPosition(ptr,pos);
+    retCells.ModAppend(ptr);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void requestCells(ref Any[] arrayPointer, in Cell[] cells){ //moves all the requested cells into playerCells
+//     arrayPointer = [];
+//     foreach(Cell cell in cells){
+//         arrayPointer.ModAppend(cell);
+//     }
+// }

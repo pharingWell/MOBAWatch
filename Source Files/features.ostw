@@ -1,0 +1,72 @@
+
+import "../Header Files/main.del";
+
+import "../error.ostw";
+import "../debug.ostw";
+
+import "../Header Files/collision.del";
+
+import "state.ostw";
+import "ui.ostw";
+import "hud/ux.ostw";
+import "entity.ostw"; 
+import "structures.ostw";
+import "creature.ostw"; 
+import "minion.ostw";
+import "projectiles/base_projectile.ostw";
+import "projectiles/pathed_projectile.ostw";
+import "model/player_controller.ostw";//contains puppet which contains effects
+import "async.ostw";
+//import "vision.ostw";
+//import "model/model.ostw";
+
+
+
+
+// rule: 'Move camera to mouse on click'
+// Event.OngoingPlayer
+// if(READY == true)
+// if(!IsDummyBot(EventPlayer()))
+// if(HasSpawned(EventPlayer()))
+// if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+// if(!isCameraLocked)
+// {   
+//     Vector toRevert! = EventPlayer().cursorWorldPositon;
+//     EventPlayer().cursorWorldPositon = uiToWorld(EventPlayer(),HorizontalFacingAngleOf(EventPlayer()),-VerticalFacingAngleOf(EventPlayer()));
+//     teleportCamera(EventPlayer().cursorWorldPositon);
+//     Wait();
+//     LoopIfConditionIsTrue();
+
+// }
+
+
+
+// globalvar Boolean hud = false;
+// rule: 'My Rule'
+// if(IsButtonHeld(HostPlayer(),Button.Jump))
+// {
+//     if(hud){
+//         DisableHeroHud(controllers);
+//     }else{
+//         EnableHeroHud(controllers);
+//     }
+//     hud = !hud;
+// }
+
+/*
+import "../customGameSettings.json";
+import "../Header Files/main.del";
+
+import "../error.ostw";
+import "../debug.ostw";
+import "../tests.ostw";
+
+import "state.ostw";
+import "ui.ostw";
+import "entity.ostw";
+import "structures.ostw";
+import "creature.ostw"; 
+import "minion.ostw";
+import "model/player_controller.ostw";
+import "async.ostw";
+*/

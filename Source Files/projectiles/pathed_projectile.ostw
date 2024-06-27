@@ -1,0 +1,18 @@
+import "../../Header Files/projectiles/pathed_projectile.del";
+import "../../Header Files/minion.del";
+import "../render.ostw";
+rule: 'Create spinning projectile'
+{
+    Wait(5);
+    // Projectile spinningProjectile! = new Projectile({isStructure: true, creaturePlayerSource:{isPlayer: false, creatureRef: null, playerRef: null}, structureSource: <Structure>null});
+    // CreateProjectileEffect(LocalPlayer(), ProjectileType.BaptisteBioticLauncher, LocalPlayer(), spinningProjectile.getPosition(), spinningProjectile.getVelocity(), 0, ProjectileEffectReeval.VisibleToPositionDirectionAndSize);
+    
+    
+    //spinning{type: EEntityObjectType.STRUCTURE, objectRef: null}
+
+    
+    //PathedProjectile e = new PathedProjectile();
+    //e.fire(Vector(CosineFromRadians(e.t),0,SineFromRadians(e.t)) * -1, Effect.Sphere);
+    
+    //addEntityToCell(Cell_fromGridCoord_unsafeInline(GRID_COLUMNS/2, GRID_ROWS/2), e);
+}

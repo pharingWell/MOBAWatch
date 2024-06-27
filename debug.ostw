@@ -1,0 +1,36 @@
+import "debug.del";
+
+String toString_subroutine(Any[] arr) "Array to String - DEBUG"
+{
+    String s! = $"[{arr[0]}";
+    
+    for(define i! = 1; i < CountOf(arr); i++){
+        if(CountOf(arr[i])>0){
+            s = $"{s}, Array[{CountOf(arr[i])}]";
+        }else{
+            s = $"{s}, {arr[i]}";
+        }
+    }
+    return $"{s}]";
+}
+
+define printToScreen(in Any s): printToScreen(<String>s, Location.Left);
+
+define printToScreen(in String s, Location l): CreateHudText(DISPLAY_TO_SCREEN ? LocalPlayer() : null, s, null, null, l, 1,Color.White, null, null, HudTextRev.VisibleToAndString,Spectators.DefaultVisibility);
+
+define printToScreen_noRev(in String s, Location l): CreateHudText(LocalPlayer(), s, null, null, l, 1, Color.White, null, null, HudTextRev.VisibleTo,Spectators.DefaultVisibility);
+
+void forceLog(in Any a){
+    EnableInspectorRecording();
+    Wait();
+    LogToInspector(a);
+    Wait();
+    DisableInspectorRecording();
+}
+Number textLength(in Any[] arr): StringLength(SortedArray(arr.Map(e => $"{e}"),-StringLength(ArrayElement()))[0]);
+String toString(in Any[] arr): $"{arr[0]}, {arr[1]}, {arr[2]}, {arr[3]}, {arr[4]}, {arr[5]}, {arr[6]}, {arr[7]}, {arr[8]}, {arr[9]}, {arr[10]}, {arr[11]}, {arr[12]}, {arr[13]}, {arr[14]}".Slice(0,(textLength(arr)+2)*arr.Length);
+String toString_extended(in Any[] arr): $"{arr[0]}, {arr[1]}, {arr[2]}, {arr[3]}, {arr[4]}, {arr[5]}, {arr[6]}, {arr[7]}, {arr[8]}, {arr[9]}, {arr[10]}, {arr[11]}, {arr[12]}, {arr[13]}, {arr[14]}, {arr[15]}, {arr[16]}, {arr[17]}, {arr[18]}, {arr[19]}, {arr[20]}, {arr[21]}, {arr[22]}, {arr[23]}, {arr[24]}, {arr[25]}, {arr[26]}, {arr[27]}, {arr[28]}, {arr[29]},".Slice(0,(textLength(arr)+2)*arr.Length);
+
+void serverLoad(){
+    CreateHudText(LocalPlayer(), $"Load:{ServerLoad()},Peak:{ServerLoadPeak()},Avg:{ServerLoadAverage()}", null, null, Location.Top, 1, Color.White, null, null, HudTextRev.VisibleToAndString);
+}

@@ -1,0 +1,19 @@
+import "../../Header Files/model/model.del";
+import "../../Header Files/ui.del";
+rule: 'set ID'
+Event.OngoingPlayer
+{
+    setPlayerInfo(EPlayerInfo.TEAM_NUM, TeamOf(EventPlayer()) == Team.Team2 ? 1 : 0);
+    ID = SlotOf(EventPlayer()) + getPlayerInfo(EPlayerInfo.TEAM_NUM) * PLAYER_COUNT; //puppets have ids 10-19, controllers have ids 0-9
+    if(EventPlayer().IsDummy()){
+        ID += PLAYER_COUNT;
+        puppets[ID-PLAYER_COUNT*2] = EventPlayer();
+        Wait(2);
+        setPlayerInfo(EPlayerInfo.CAN_SETUP, true);
+    }else{
+        WaitUntil(READY, 999);
+        controllers[ID] = EventPlayer();
+        setPlayerInfo(EPlayerInfo.CAN_SETUP, true);
+    }
+    printToScreen($"{EventPlayer()}:{ID}", Location.Right);
+}

@@ -1,0 +1,87 @@
+define manaspace: "  ";
+
+//900+ restart with size 6, now with each square representing 150. This continues infinitely (growing by a factor of 6 each time)
+// /128
+//ĺ/ί/ι/‚/115            [651-875](26-35)[2990-4025]
+//ṝ/r/„/ /170:           [401-650](17-25)[2890-4250]
+//Γ/I /ı /  /284:        [251-400](10-16)[2840-4544]
+//ㄇ/ㄒ/ㅣ/ /512:         [126-250](6-9)[3072-4608]
+// //■■/■□/□□/      /854:[51-125](3-5)[2562-4270]
+// //■■■■/■■□□/□□□□/            /1708:[26-50](2)[3416]
+//■■■■■■■■/■■■■□□□□/□□□□□□□□/                        /3416:[1-25](1)[3416]
+//bar = 25
+
+
+// //■/▣/□/   /427:240
+Number[] hpbar_dictionary: [0,1,2,3,3,3,4,4,4,4,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7];
+//16
+//String[] hpbar_offsets:    ['','   ','   ','    ','   ','  ','   ','  ',' ','','       ','     ','   ','    ','    ','  ','','    ','   ','    ','         ','  ','      ','  ',' ','  ',' ','','     ','        ','       ','      ','   ','     ','    ','   ','  '];
+//[0,0,0,0,1,2,0,1,2,3,0,1,2,3,4,5,6,0,1,2,3,4,5,6,7,8,0,1,2,3,4,5,6,7,8,9];
+globalvar String[][] hpbar_symbols! = [
+/*0: [empty]*/ ['','','',''],
+/*1: [1]*/ ['■■■■■■■■','■■■■□□□□','□□□□□□□□','                        ',"|"],
+/*2: [2]*/ ['■■■■','■■□□','□□□□','            ',"|"],
+/*3: [3-5]*/ ['■■', '■□', '□□', '      ',"|"],
+/*4: [6-9]*/ ['ㄇ', 'ㄒ', 'ㅣ', ' ',"|"],
+/*5: [10-16]*/ ['Γ', 'ı ', 'I ', '  ',"|"],
+/*6: [17-26]*/ ['ṝ', 'ṟ', '„',' ',"|"],
+/*7: [27-35]*/ ['ί', 'і', 'ι', '‚','ḽ']
+];
+Number[] hpbar_groupings: [0,1,1,1,3,4,5,7];
+
+import "actions/map.del";
+
+define map: 
+"┏━━━━━━━━━━━━━━┓
+┃              ┃
+┃              ┃
+┃              ┃\n";
+define map2:
+"┃              ┃
+┃              ┃
+┃              ┃
+┃              ┃
+┗━━━━━━━━━━━━━━┛";
+
+define screen: 
+"┏━━━━━━━━━━━━━━┓
+┃              ┃
+┃              ┃
+┃              ┃
+┃              ┃
+┃              ┃
+┗━━━━━━━━━━━━━━┛";
+define map_inside:
+"\\‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾/
+ \\        /
+  \\__________/";
+
+// define map_inside:
+// "|‾‾‾‾‾‾‾‾‾‾‾‾‾|
+// |             |
+// |_______|
+// ";
+
+// define map_inside:
+// "┏━━━┓
+// ┃   ┃
+// ┗━━━┛";
+
+playervar HealthBar healthbarVars;
+single struct HealthBar{
+  public String blank;
+  public String final;
+  public String blankTemp;
+  public String finalTemp;
+  public Number blocks;
+  public Number id;
+  public Number iterator;
+  public Number hpPerBlock;
+  public Number remainingHealth;
+}
+
+define symbolString: "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒";
+define effectRow(Number width): StringSlice(symbolString, 0, width)+"\n";
+String makeEffect(Number width, Number height): StringSlice($"{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}{effectRow(width)}", 0, (width+1)*height);
+
+

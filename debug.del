@@ -1,0 +1,6 @@
+define SHOW_ENTITY_PROJECTEDLOC: true;
+define SHOW_ENTITY_TRUELOC: false;
+
+define DISPLAY_TO_SCREEN: true;
+
+globalvar Boolean LOCK = false;

@@ -1,0 +1,90 @@
+import "customGameSettings.lobby";
+import "../debug.ostw";
+playervar Vector lastposition;
+playervar Vector nextpos;
+//playervar Vector intersectionPos;
+playervar Number hitboxRadius;
+globalvar Vector wallPos = Vector(RandomReal(-10,10),0,RandomReal(-10,10));
+globalvar Vector normal = DirectionFromAngles(RandomReal(-90,90),0);
+//globalvar Vector wallDirection = ;
+rule: 'My Rule'
+{
+    // printToScreen($"Position:{PositionOf(LocalPlayer())}");
+    // printToScreen($"Delta Pos:{PositionOf(LocalPlayer())-LocalPlayer().lastposition}");
+    // printToScreen($"Velocity:{VelocityOf(LocalPlayer())}");
+    // printToScreen($"Velocity Scale:{VelocityOf(LocalPlayer())/(PositionOf(LocalPlayer())-LocalPlayer().lastposition)}");
+    // printToScreen($"Pulsed: {pulsed}, Teleported: {teleported}, Throttled: {LocalPlayer().throttled}");
+    // printToScreen($"hitbox: {LocalPlayer().hitboxRadius}");
+    // printToScreen($"X: {ThrottleOf(LocalPlayer()).X*WorldVectorOf(Right(), LocalPlayer())}");
+    // printToScreen($"Z: {ThrottleOf(LocalPlayer()).Z*(FacingDirectionOf(LocalPlayer())*Vector(1,0,1))}");
+    // printToScreen($"thickness: {thickness}");
+    //printToScreen($"Throt:{throt}, Throt2:{throt_2}"); 
+    // printToScreen($"For:{Min(1,DotProduct(DirectionTowards(PositionOf(LocalPlayer()) - vectorProjection(PositionOf(LocalPlayer())-wallPos, normal),PositionOf(LocalPlayer())),normal) * DotProduct(ThrottleOf(LocalPlayer()).Z*WorldVectorOf(Forward(), LocalPlayer(), LocalVector.Rotation), normal)+1)}");
+    // //printToScreen($"ewr: {100-DotProduct(normal, Normalize(VelocityOf(LocalPlayer())))*100* (XOf(PositionOf(LocalPlayer()) + VelocityOf(LocalPlayer())*0.016)<0)}");
+    // printToScreen($"{DistanceBetween(PositionOf(LocalPlayer()) + VelocityOf(LocalPlayer())/16, PositionOf(LocalPlayer()) - vectorProjection(PositionOf(LocalPlayer())-wallPos, normal))}");
+    
+    
+    
+    CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,wallPos+CrossProduct(Up(),normal)*50,wallPos+CrossProduct(Up(),normal)*-50,Color.Aqua,EffectRev.VisibleToPositionAndRadius);
+    CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,wallPos,wallPos+normal,Color.Team1,EffectRev.VisibleToPositionAndRadius);
+    CreateEffect(LocalPlayer(),Effect.Ring, Color.Aqua, UpdateEveryFrame(LocalPlayer().Position()*Vector(1,0,1)), LocalPlayer().hitboxRadius, EffectRev.VisibleToPositionAndRadius);
+    // CreateBeamEffect(LocalPlayer(), BeamType.SymmetraTurretBeam,
+    // UpdateEveryFrame(PositionOf(LocalPlayer())+Vector(0,1.6,0)),
+    // UpdateEveryFrame(PositionOf(LocalPlayer())+DirectionTowards(LocalPlayer().lastposition, PositionOf(LocalPlayer()))*LocalPlayer().hitboxRadius+Vector(0,1.6,0))
+    // ,Color.Aqua,EffectRev.VisibleToPositionAndRadius);
+    // CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,
+    // UpdateEveryFrame(PositionOf(LocalPlayer())+Vector(0,1.6,0)),
+    // UpdateEveryFrame(PositionOf(LocalPlayer())+Vector(0,1.6,0) + PositionOf(LocalPlayer())-LocalPlayer().lastposition)
+    // ,Color.Team1,EffectRev.VisibleToPositionAndRadius);
+    //CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,PositionOf(LocalPlayer()),PositionOf(LocalPlayer())+normal,Color.Team1,EffectRev.VisibleToPositionAndRadius);
+    // CreateEffect(LocalPlayer(), Effect.Sphere, Color.Aqua, UpdateEveryFrame(PositionOf(LocalPlayer()) - vectorProjection(PositionOf(LocalPlayer())-wallPos, normal)), 0.1, EffectRev.VisibleToPositionAndRadius); 
+    // CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam, PositionOf(LocalPlayer()), PositionOf(LocalPlayer())+DotProduct(ThrottleOf(LocalPlayer()).Z*FacingDirectionOf(LocalPlayer()), normal)*FacingDirectionOf(LocalPlayer()));
+    // CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam, PositionOf(LocalPlayer()), PositionOf(LocalPlayer())+WorldVectorOf(Forward(), LocalPlayer(), LocalVector.Rotation), null, EffectRev.VisibleToPositionAndRadius);
+    // CreateEffect(LocalPlayer(), Effect.Sphere, Color.Black, UpdateEveryFrame(LocalPlayer().lastposition),0.1, EffectRev.VisibleToPositionAndRadius);
+    // CreateEffect(LocalPlayer(), Effect.Sphere, Color.Red, UpdateEveryFrame(PositionOf(LocalPlayer()) + DirectionTowards(PositionOf(LocalPlayer()), PositionOf(LocalPlayer()) - vectorProjection(PositionOf(LocalPlayer())-wallPos, normal))*(LocalPlayer().hitboxRadius) + VelocityOf(LocalPlayer())/16), 0.1, EffectRev.VisibleToPositionAndRadius);
+}
+    
+    globalvar Number thickness:  0.75;
+
+ Number getIntersectionDistanceFromSegment(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal);
+Vector getSegmentPlaneIntersection(in Vector segmentStart, in Vector segmentDirection, in Number intersectionDistance): segmentStart +  intersectionDistance * segmentDirection;
+
+Vector getSegmentPlaneIntersection_full(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): segmentStart +  DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal) * segmentDirection;
+
+playervar Boolean throttled;
+rule: 'My Rule'
+Event.OngoingPlayer
+if(HasSpawned())
+{
+    Vector position: PositionOf();
+    Vector intersectionPos =  position - vectorProjection(position-wallPos, normal);
+    Vector velocity: VelocityOf()/16;
+    Vector radius = DirectionTowards(PositionOf(), intersectionPos)*(hitboxRadius+thickness);
+    nextpos = position + radius + velocity;
+    Number sideOfWall = DotProduct(DirectionTowards(intersectionPos,position),normal);
+    if((DotProduct(DirectionTowards(intersectionPos,lastposition),normal) > 0) != (sideOfWall > 0)){
+        Teleport(EventPlayer(), intersectionPos + radius); //teleport detectionz
+    }else if((DotProduct(DirectionTowards(intersectionPos,nextpos),normal) > 0) != (sideOfWall > 0)){
+        if(IsOnGround()){
+            SetGravity(EventPlayer(), 0);
+        }
+        ApplyImpulse(EventPlayer(),normal*sideOfWall,thickness,Relative.ToWorld,ContraryMotion.CancelXYZ); //normal movement detection
+    }
+    lastposition = PositionOf();
+    Wait();
+    SetGravity(EventPlayer(), 100);
+    Loop();
+}
+
+rule: "players store their melee hitboxes on hero swap"
+Event.OngoingPlayer
+if (HasSpawned(EventPlayer()) == true)
+{
+    hitboxRadius = [0.40, 0.35, 0.35, 0.45, 0.55, 0.8, 0.55, 1.05, 0.45, 0.90, 0.40, 0.45, 0.45, 0.95, 0.45, 0.4, 0.7, 0.45, 0.6, 1.1, 0.6, 0.5, 0.85, 0.5, 0.9, 0.60, 0.45, 0.95, 0.45, 0.4, 0.6, 0.65, 0.5, 0.7, 0.9, 0.65, 0.55][IndexOfArrayValue(AllHeroes(), HeroOf())];
+    Wait(0.2, WaitBehavior.IgnoreCondition);
+    WaitUntil(EvaluateOnce(HeroOf(EventPlayer())) != HeroOf(EventPlayer()), 99999);
+    Loop();
+    // CreateHudText(HostPlayer(), $"Load:{ServerLoad()},Peak:{ServerLoadPeak()},Avg:{ServerLoadAverage()}", null, null, Location.Top, 30, Color.White, null, null, HudTextRev.VisibleToAndString, Spectators.DefaultVisibility);
+}
+
+Vector vectorProjection(in Vector a, in Vector onto):  onto * (DotProduct(a,onto)/DotProduct(onto,onto));

@@ -1,4 +1,78 @@
-class Entity{
-    public Boolean isPlayer;
-    public Number tickOffset;
+import "grid.del";
+//Class for any object that is dynamic
+//Grid works with entities 
+
+enum EEntityObjectType{
+    NULL,
+    CREATURE,
+    PLAYER,
+    STRUCTURE
 }
+
+# Boolean isPlayer, Entity creatureRef, Player playerRef
+single struct Targettable {
+    public EEntityObjectType type;
+    public Creature | Player objectRef;
+}
+
+enum EEntitySubclass{
+    NONE = -1,
+    PROJECTILE = 1,
+    CREATURE = 2
+}
+globalvar Entity[] Entity_list; //list by index
+globalvar Vector[] Entity_position;
+globalvar Vector[] Entity_velocity;
+globalvar Number[] Entity_tickOffset;
+globalvar Vector[] Entity_cellCoords;
+globalvar Number d;
+class Entity{
+    public Boolean visibility;
+    private Number index;
+    public Team team;
+    public Targettable target;
+    //Render:
+    public Number[] viewerIndex;
+    public void setPosition(in Vector position){
+        Entity_position[this.index] = position;
+    }
+    public void setVelocity(in Vector velocity){
+        Entity_velocity[this.index] = velocity;
+    }
+    public void setTickOffset(in Number tickOffset){
+        Entity_tickOffset[this.index] = tickOffset;
+    }
+    public void setCellCoord(in Number xCoord, in Number zCoord){
+        Entity_cellCoords[this.index] = Vector(xCoord, 0, zCoord);
+    }
+    public Vector getPosition(): Entity_position[this.index];
+    public Vector getVelocity(): Entity_velocity[this.index];
+    public Number getTickOffset(): Entity_tickOffset[this.index];
+    public Vector getCellCoord(): Entity_cellCoords[this.index];
+    public virtual EEntitySubclass subclass: EEntitySubclass.NONE;
+    public static Entity getByIndex(in Number index): Entity_list[index];
+    void entity_constructor(){
+        index = 1;
+        while(Entity_list[index] != null){
+            index++;
+        }
+        Entity_list[index] = this;
+        visibility = false;
+        setTickOffset(TotalTimeElapsed());
+        setPosition(Vector(0,-1,0));
+        setVelocity(Vector(0,0,0));
+        setCellCoord(-1, -1);
+        d++;
+        //as otherwise it tries to add a vector to the number 0, has a conniption, and goes to 0 aka 0,0,0
+        //entities.ModAppend(this);
+    }
+    public void destroy(){
+        Entity_list[index] = null;
+        Entity_velocity[index] = null;
+        delete(this);
+        d--;
+        //remove self from all observers' render
+    }
+}
+
+//globalvar Entity[] entities;

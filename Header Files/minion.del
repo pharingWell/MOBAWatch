@@ -1,0 +1,58 @@
+import "creature.del";
+import "../error.ostw";
+import "../const.del";
+
+define EMinionType_toArray: [EMinionType.NONE,EMinionType.MELEE,EMinionType.MAGE,EMinionType.RANGED,EMinionType.SEIGE,EMinionType.BRUTE];
+//globalvar Minion[] minions;
+
+globalvar Number[] waves; //points to the index of the first minion in the wave. When removing a mi
+//zeroes?
+
+
+enum EMinionType{
+    NONE,
+    MELEE,
+    MAGE,
+    RANGED,
+    SEIGE,
+    BRUTE
+}
+class Minion : Creature
+{
+    public EMinionType type;
+    public constructor(in Team team, in EMinionType type){
+        creature_constructor();
+        this.team = team;
+        this.type = type;
+        this.setPosition(Vector(CELL_WIDTH/2,0,CELL_HEIGHT/2));
+        switch (team){
+            case Team.Team1:
+                this.color = Color.Team1;
+                setVelocity(Vector(-1,0,0));
+                break;
+            case Team.Team2:
+                this.color = Color.Team2;
+                setVelocity(Vector(1,0,0));
+                break;
+            case Team.All:
+                async throwError({
+                    message: "Tried to create a neutral minion.",
+                    source: "Minion, constructor, case Team.ALL",
+                    severity: EErrorSeverity.FATAL
+                    });
+                break;
+        }
+        appearance = ["","ι","ί",team == Team.Team1 ? "Ｒ" : "Я","ϊ","ΐ"][type];
+        if(!appearance){
+            throwError({
+                message: "Minion rendered with no appearance", 
+                source: "Minion, constructor, apperance",
+                severity: EErrorSeverity.WARNING
+                });
+        }
+        
+        Wait(0.016);
+        visibility = true;
+    }
+
+}

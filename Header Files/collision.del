@@ -1,0 +1,105 @@
+
+enum EColliderType{
+    SIMPLE,
+    ARC,
+    GRID_ALIGNED,
+    POLYGON
+
+
+}
+
+single struct SimpleCollider{
+    public Number radius;
+    public Vector center;
+    public static SimpleCollider construct(Number radius, Vector center): {radius: radius, center: center};
+}
+
+
+
+single struct ArcCollider{
+    public Vector center;
+    public Vector radius;
+    public Vector angle;
+
+    Number getRadiusMin(): radius.X;
+    Number getRadiusMax(): radius.Y;
+    Number getAngleMin(): angle.X;
+    Number getAngleMax(): angle.Y;
+
+    public static ArcCollider construct(Number x, Number z, Number radius_max, Number radius_min = 0, Number angle_max, Number angle_min): {center: Vector(x, 0, z), radius: Vector(radius_min, radius_max, 0), angle: Vector(angle_min, angle_max, 0)};
+    public static ArcCollider fromSimple(SimpleCollider simple, Number angle_min, Number angle_max): {center: simple.center, radius: Vector(0, simple.radius, 0), angle: Vector(angle_min, angle_max, 0)};
+    public static void visualize(ArcCollider ac){
+    if(ac.getRadiusMin() > 0){
+        CreateEffect(AllPlayers(), Effect.Ring, Color.Black, ac.center, ac.getRadiusMin(), EffectRev.VisibleTo);
+    }
+    CreateEffect(AllPlayers(), Effect.Ring, Color.White, ac.center, ac.getRadiusMax(), EffectRev.VisibleTo);
+    CreateBeamEffect(AllPlayers(), BeamType.GoodBeam, getAngleAtDistance(ac.getAngleMin(), ac.getRadiusMin()), getAngleAtDistance(ac.getAngleMin(), ac.getRadiusMax()), Color.White, EffectRev.VisibleTo);
+    CreateBeamEffect(AllPlayers(), BeamType.GoodBeam, getAngleAtDistance(ac.getAngleMax(), ac.getRadiusMin()), getAngleAtDistance(ac.getAngleMax(), ac.getRadiusMax()), Color.White, EffectRev.VisibleTo);
+    }
+}
+
+
+
+single struct Line{
+    public Number startX;
+    public Number startZ;
+    public Number endX;
+    public Number endZ;
+    public Number id;
+    public static Line construct(Vector start, Vector end, Number id): {startX: start.X, startZ: start.Z, endX: end.X, endZ: end.Z, id: id};
+    Vector lineAsVector(Line line): Normalize(Vector(line.endX - line.startX, 0, line.endZ - line.startZ));
+    Vector circle(Vector center) : Vector(center.X - startX, 0, center.Z - startZ);
+    public Boolean intersectionWithCircle(in Vector center, in Number radius): 
+    AbsoluteValue(
+        DotProduct(circle(center), 
+            DirectionFromAngles(
+                HorizontalAngleFromDirection(lineAsVector(<Line> this)) - 90, 0)
+            )
+        ) <= radius;
+}
+
+define getAngleAtDistance(Number angle, Number distance): DirectionFromAngles(angle, 0) * distance;
+
+# Grid Aligned (AABB) Collider 
+single struct GridAlignedCollider {
+    public Number minX;
+    public Number minZ;
+    public Number maxX;
+    public Number maxZ;
+    public Number id;
+    # Point 1 and Point 2 are two opposite corners of the rectangle that Grid Aligned Collider will represent
+    public static GridAlignedCollider construct(in Number point1X, in Number point1Z, in Number point2X, in Number point2Z, in Number id): {minX: Min(point1X, point2X), minZ: Min(point1Z, point2Z),maxX: Max(point1X, point2X),  maxZ: Max(point1Z, point2Z), id: id};
+    public static void construct_to_ptr(in Number point1X, in Number point1Z, in Number point2X, in Number point2Z, ref GridAlignedCollider gac_out){
+        id_counter++;
+        gac_out = {minX: Min(point1X, point2X), minZ: Min(point1Z, point2Z),maxX: Max(point1X, point2X),  maxZ: Max(point1Z, point2Z), id: id_counter};
+    }
+    public static void visualize(in GridAlignedCollider gac){
+        define gac_BOTTOM_LEFT:  Vector(gac.maxX, 0, gac.minZ);
+        define gac_TOP_LEFT:  Vector(gac.maxX, 0, gac.maxZ);
+        define gac_BOTTOM_RIGHT:  Vector(gac.minX, 0, gac.minZ);
+        define gac_TOP_RIGHT:  Vector(gac.minX, 0, gac.maxZ);
+        define beamType: BeamType.GrappleBeam;
+        CreateBeamEffect(LocalPlayer(), beamType, gac_BOTTOM_RIGHT, gac_BOTTOM_LEFT, Color.White, EffectRev.VisibleTo);
+        CreateBeamEffect(LocalPlayer(), beamType, gac_TOP_LEFT, gac_BOTTOM_LEFT, Color.White, EffectRev.VisibleTo);
+        CreateBeamEffect(LocalPlayer(), beamType, gac_TOP_RIGHT, gac_TOP_LEFT, Color.White, EffectRev.VisibleTo);
+        CreateBeamEffect(LocalPlayer(), beamType, gac_TOP_RIGHT, gac_BOTTOM_RIGHT, Color.White, EffectRev.VisibleTo);
+    }
+        public static void visualize_lite(in GridAlignedCollider gac){
+        define gac_BOTTOM_LEFT:  Vector(gac.maxX, 0, gac.minZ);
+        define gac_TOP_LEFT:  Vector(gac.maxX, 0, gac.maxZ);
+        define gac_BOTTOM_RIGHT:  Vector(gac.minX, 0, gac.minZ);
+        define gac_TOP_RIGHT:  Vector(gac.minX, 0, gac.maxZ);
+        define beamType: BeamType.GoodBeam;
+        CreateBeamEffect(LocalPlayer(), beamType, gac_TOP_RIGHT, gac_TOP_LEFT, Color.Red, EffectRev.VisibleTo);
+        CreateBeamEffect(LocalPlayer(), beamType, gac_TOP_RIGHT, gac_BOTTOM_RIGHT, Color.Red, EffectRev.VisibleTo);
+    }
+    public static Number id_counter = 0;
+}
+
+// globalvar ArcCollider[] arcColliders = [];
+
+// rule: 'My Rule'
+// {
+//     ArcCollider a = ArcCollider.fromSimple(SimpleCollider.construct(1, Vector()), 10, 50);
+//     ArcCollider.visualize(a);
+// }

@@ -1,0 +1,53 @@
+import "../../const.del";
+import "../main.del";
+import "../../debug.ostw";
+globalvar Player[] controllers;
+globalvar Player[] puppets;
+
+struct Model{
+    public Player controller;
+    public Player puppet;
+}
+
+# represents the puppet's controller and the controller's puppet, dependent on who calls it
+playervar Player otherModelMember;
+playervar Model model;
+
+playervar Number ID;
+
+playervar Any[] info;
+
+enum EPlayerInfo{
+    TEAM_NUM,
+    CAN_SETUP,
+    IS_READY,
+    VISIBLE,
+    NAME_STRING,
+    NAME_BUFFER_CHARS
+}
+
+define isSetup(Player p = EventPlayer()): getPlayerInfo(EPlayerInfo.CAN_SETUP, p);
+
+# 0 for Team.1, 1 for Team.2
+
+void setPlayerInfo(in EPlayerInfo e, in Any value, in Player p = EventPlayer()){
+    p.info[e] = value;
+}
+
+Any getPlayerInfo(EPlayerInfo e, Player p = EventPlayer()): p.info[e];
+
+// playervar Number teamNum: info[EPlayerInfo.TEAM_NUM];
+// playervar Boolean canSetup: info[EPlayerInfo.CAN_SETUP];
+// playervar Boolean isReady: info[EPlayerInfo.IS_READY];
+// playervar Boolean visible: info[EPlayerInfo.VISIBLE];
+// playervar String name: info[EPlayerInfo.NAME_STRING];
+// playervar Number name_buffer: info[EPlayerInfo.NAME_BUFFER_CHARS];
+playervar Number health;
+
+playervar Number maxHealth;
+
+playervar Number heroSize; 
+
+Player getOther(in Player p = EventPlayer()): p.otherModelMember;
+Player getPuppet(in Player p = EventPlayer()): puppets[p.ID];
+Player getController(in Player p = EventPlayer()): controllers[p.ID];

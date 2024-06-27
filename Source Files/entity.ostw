@@ -1,1 +1,56 @@
 import "../Header Files/entity.del";
+import "../Header Files/state.del";
+import "grid.ostw";
+import "render.ostw";
+import "../error.ostw";
+rule: 'Update positions with velocity'
+if(gamePhase == EGamePhase.BATTLE)
+//if(TotalTimeElapsed()%1 <= 0.016) //second tick
+if(CountOf(Entity_list) > 0)
+{   
+    if(gamePhase!=EGamePhase.BATTLE){
+        LogToInspector($"NOT BATTLE: {gamePhase}");
+        Abort();
+    }
+    Entity_position = MappedArray(Entity_position, ArrayElement() + Entity_velocity[CurrentArrayIndex()]* (TotalTimeElapsed()-Entity_tickOffset[CurrentArrayIndex()]));
+    Entity_tickOffset = MappedArray(Entity_tickOffset, TotalTimeElapsed());
+    Wait(0.064);
+    Vector[] cellChange = MappedArray(Entity_position, Vector(XOf(ArrayElement()) > CELL_WIDTH ? 1 : XOf(ArrayElement()) < 0 ? -1 : 0, CurrentArrayIndex(), ZOf(ArrayElement()) > CELL_HEIGHT ? 1 : ZOf(ArrayElement()) < 0 ? -1 : 0));
+    Entity_position = MappedArray(Entity_position, ArrayElement() - cellChange[CurrentArrayIndex()] * Vector(CELL_WIDTH, 0, CELL_HEIGHT));
+    Entity_cellCoords = MappedArray(Entity_cellCoords, ArrayElement() + cellChange[CurrentArrayIndex()] * Vector(1,0,1));
+    Vector[] changedEntities = FilteredArray(cellChange, ArrayElement() * Vector(1,0,1) != Vector(0, 0, 0));
+    Wait(0.064);
+    foreach(Vector change! in changedEntities){
+        Entity entity! = Entity.getByIndex(change.Y);
+        Vector oldCellCoord! = Entity_cellCoords[change.Y] - change * Vector(1,0,1) ;
+        Vector newCellCoord! = Entity_cellCoords[change.Y];
+        if(outOfCellBounds(newCellCoord.X, newCellCoord.Z)){
+            //  throwError({message: $"Entity {entity} of type {entity.subclass} with change: {change} from {oldCellCoord} to {newCellCoord}", source: "entity loop", severity: EErrorSeverity.WARNING});
+            removeEntityFromCell(Cell_fromGridCoord_unsafeInline(entity.getCellCoord().X, entity.getCellCoord().Z), entity);
+            entity.destroy();
+            continue;
+        }
+        //else
+        moveEntityBetweenCells(entity, Cell_fromGridCoord_unsafeInline(oldCellCoord.X, oldCellCoord.Z), Cell_fromGridCoord_unsafeInline(newCellCoord.X, newCellCoord.Z));
+
+    }
+    Wait(ENTITY_TICK);
+    Loop();
+
+    //Entity_cellCoords = MappedArray(Entity_cellCoords, )
+    
+    // foreach(Entity entity! in entities){ 
+    //     // Number tick! =;
+    //     // entity.position += entity.getVelocity() * tick;
+    //     // entity.tickOffset = TotalTimeElapsed();
+    //     //WaitUntil(LOCK == false, 999); //lock is a system to prevent entities moving while the active cells are being changed
+    //     Cell temp!;
+    //     //Cell_byPosition(temp, entity.position + entity.velocity * tick);
+    //     if(entity.cell != temp){
+    //         moveEntityBetweenCells(entity,entity.cell,temp);
+    //     }
+    //     Wait();
+
+    // }
+}
+

@@ -1,0 +1,23 @@
+enum EHudInteractionType{
+    NONE,
+    LCLICK,
+    RCLICK,
+    LHELD,
+    RHELD,
+    HOVER
+}
+# zOrder: Number, state: Number | Number[], x_TopLeft: Number, y_TopLeft: Number, x_BottomRight: Number, y_BottomRight, acceptedActions: EHudInteractionType[]
+struct Region{
+    public Number zOrder;
+    public Number state;
+    public Number state2;
+    public Number state3;
+    public Number x;
+    public Number y;
+    public Number halfwidth;
+    public Number height;
+    public EHudInteractionType[] acceptedActions;
+    public static Region makeEmpty(): {zOrder: -1, state: -1, state2: -1, state3: -1, x: 0, y: 0, halfwidth: 0, height: 0, acceptedActions:[]};
+    public static Region make(Number zord, Number x, Number y, Number width, Number height, EHudInteractionType[] acceptedActions) : {zOrder: zord, state: 0, state2: 0, state3: 0, x: x, y: y, halfwidth: width/2, height: height, acceptedActions: acceptedActions};
+}
+

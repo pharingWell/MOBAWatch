@@ -1,0 +1,79 @@
+import "../Header Files/vision.del";
+import "../Header Files/model/player_controller.del";
+import "../Header Files/ui.del";
+
+
+// define visionOffset:  Vector(0,3,-2);
+// define visionPosition(Number index, Player p = LocalPlayer()): EvaluateOnce(visionEffect[index] + visionOffset) +  UpdateEveryFrame(p.renderPosition);
+// rule: 'Create Vision Effects'
+// Event.OngoingGlobal
+// {
+//     printToScreen(cameraPosition(LocalPlayer()));
+//     Wait(3);
+//     define target! = 6;
+//     define x! = 0;
+//     define y! = 0;
+
+//     define visionEffectColor: Color.Gray;
+//     for (define i = 0; i < 15; i++)
+//     {
+//         CreateEffect(IsTrueForAll(LocalPlayer().visionTiles, ArrayElement() >= 1)  || LocalPlayer().loading ? LocalPlayer() : null, Effect.Sphere, Color.Black, UpdateEveryFrame(cameraPosition(LocalPlayer()))+Vector(0,-12-EvaluateOnce(i)/15,2), 20, EffectRev.VisibleToPositionAndRadius);
+//     }
+    
+//     for(Number i! = 0; i < visionEffect.Length; i++){
+//         define visionEffectVisibility: LocalPlayer().visionTiles[EvaluateOnce(i)] >= 0.5 ? controllers : null;
+//         define effectArray: [Effect.AnaBioticGrenadeIncreasedHealingEffect, Effect.AnaBioticGrenadeNoHealingEffect, Effect.AnaNanoBoostedEffect, Effect.AnaSleepingEffect, Effect.AsheDynamiteBurningMaterialEffect, Effect.AsheDynamiteBurningParticleEffect, Effect.BadAura, Effect.BaptisteImmortalityFieldProtectedEffect, Effect.CassidyFlashbangStunnedEffect, Effect.Cloud, Effect.EchoCloningEffect, Effect.GoodAura, Effect.HealTargetActiveEffect, Effect.HealTargetEffect, Effect.LightShaft, Effect.LucioSoundBarrierProtectedEffect, Effect.MeiFrozenEffect, Effect.MercyDamageBoostedEffect, Effect.Orb, Effect.ReaperWraithFormEffect, Effect.Ring, Effect.SigmaGraviticFluxTargetEffect, Effect.Soldier76SprintingEffect, Effect.SombraHackedLoopingEffect, Effect.Sparkles, Effect.Sphere, Effect.TorbjornOverloadingEffect, Effect.WidowmakerVenomMineTargetEffect, Effect.WinstonPrimalRageEffect, Effect.WinstonTeslaCannonTargetEffect, Effect.WreckingBallAdaptiveShieldTargetEffect, Effect.WreckingBallAdaptiveShieldTargetEffect, Effect.ZenyattaOrbOfDiscordTargetEffect];
+
+//         //CustomColor(255/(target+y)*x, 200, 255/4*y)
+//         CreateEffect(visionEffectVisibility, Effect.BadAura, visionEffectColor, visionPosition(i), 4, EffectRev.VisibleToPositionAndRadius); //*Min(1,LocalPlayer().visionTiles[EvaluateOnce(i)])
+//         //CreateProjectileEffect(visionEffectVisibility, ProjectileType.BaptisteBioticLauncher, LocalPlayer(), visionPosition(i), Down(), 0.5, ProjectileEffectReeval.VisibleToPositionDirectionAndSize);
+//         Wait(0.064);
+//         // CreateInWorldText(LocalPlayer(), i,  visionPosition(i), 1, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.Black);
+//         // Wait(0.064);
+//         x++;
+//         if(x >= target + y){
+//             x = 0;
+//             y++;
+//         }
+//     }
+//     CreateEffect(LocalPlayer(), Effect.Sphere, Color.Aqua, Visible_Team1[0], 1, EffectRev.VisibleTo);
+// }
+
+// rule: 'Setup '
+// Event.OngoingPlayer
+// {
+//    Wait(1);
+//    visionTiles[visionEffect.Length] = 1000;
+//    visionTiles = MappedArray(visionTiles, 1);
+// }
+
+// define playerVisibilityArray: TeamOf(EventPlayer()) == Team.Team1 ? Visible_Team1 : Visible_Team2;
+// define playerVisibilityArray_distance: TeamOf(EventPlayer()) == Team.Team1 ? Visible_Team1_distance : Visible_Team2_distance;
+
+// rule: "update Vision"
+// Event.OngoingPlayer
+// if(!IsDummyBot())
+// if(isSetup())
+// {
+//     Vector[] test = MappedArray(playerVisibilityArray, (ArrayElement() - visionOffset - renderPosition) * Vector(1, 0, 1) + Up() * playerVisibilityArray_distance[CurrentArrayIndex()]);
+//     test = FilteredArray(test, 
+//         XOf(ArrayElement()) >= -30-YOf(ArrayElement())
+//         && XOf(ArrayElement()) <= 30+YOf(ArrayElement())
+//         && ZOf(ArrayElement()) >= -5-YOf(ArrayElement())
+//         && ZOf(ArrayElement()) <= 20+YOf(ArrayElement())
+//     );
+//     visionTiles = MappedArray(visionTiles,1);
+//     foreach(Vector v in test){
+//         visionTiles = MappedArray(visionTiles, Min(DistanceBetween(v * Vector(1, 0, 1),  visionEffect[CurrentArrayIndex()]* Vector(1, 0, 1))/v.Y, ArrayElement()));
+//     }
+//     // for (define i = 0; visionEffectWidth; 1) {
+//     //     for(define j = 0; 6; 1){
+//     //         define index! = EvaluateOnce(i*j);
+//     //         visionTiles[index] = SortedArray(playerVisibilityArray(), playerVisibilityArray_distance()[CurrentArrayIndex()]/visionDistanceFromArrayElement(i,j));
+    //         forceLog(toString(visionTiles[index]));
+    //         visionTiles[index] = visionTiles[index][0];
+    //     }
+    // }
+//     WaitUntil(renderPosition != EvaluateOnce(renderPosition), 0.064); //causes it to instally reevaluate when teleporting
+//     Loop();
+// }

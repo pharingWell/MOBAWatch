@@ -1,4 +1,7 @@
 globalvar EGamePhase gamePhase;
+
+# Array with each game Phase per state.
+# Call with gameState[EGamePhase]
 globalvar Number[] gameState;
 
 enum EGamePhase{
@@ -8,20 +11,20 @@ enum EGamePhase{
     END
 }
 
-define LOADINGSTATE_COUNT: 2;
+define LOADINGSTATE_COUNT: 3;
 enum ELoadingState{
     ACTIVE,
     RENDER_SETUP,
     FINISHED
 }
 
-define PREBATTLESTATE_COUNT: 1;
+define PREBATTLESTATE_COUNT: 2;
 enum EPreBattleState{
     ACTIVE,
     FINISHED
 }
 
-define BATTLESTATE_COUNT: 1;
+define BATTLESTATE_COUNT: 2;
 enum EBattleState{
     ACTIVE,
     FINISHED

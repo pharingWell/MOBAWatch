@@ -1,0 +1,43 @@
+import "../Header Files/minion.del";
+import "../debug.ostw";
+import "render.ostw";
+
+public void newWave() "Wave Constructor"
+{
+    //Number pointerIndex! = CountOf(waves); 
+    for(define i!  = 1; i < CountOf(EMinionType_toArray); i++){
+        for(define j! = 0; j < MINION_WAVE_SIZE[i]; j++){
+            createMinion_perTeam(Team.Team1,EMinionType_toArray[i]);
+            createMinion_perTeam(Team.Team2,EMinionType_toArray[i]);
+            Wait(TEXT_SIZE/10);
+        }
+    }
+    // if(CountOf(waves)>0){
+    //     waves.ModAppend(LastOf(minions));
+    // }else{
+    //     waves[0] = LastOf(minions);
+    // }
+    constructorCleanup();
+    //for()
+}
+
+private void createMinion_perTeam(in Team team, in EMinionType type){
+    Minion minion! = new Minion(team, type);
+    if(team == Team.Team1){
+        minion.setCellCoord(TEAM1_MINION_SPAWN_COORDX, TEAM1_MINION_SPAWN_COORDZ);
+    }else if(team == Team.Team2){
+        minion.setCellCoord(TEAM2_MINION_SPAWN_COORDX, TEAM2_MINION_SPAWN_COORDZ);
+    }
+    Cell temp!;
+    Cell_fromGridCoord(temp, minion.getCellCoord().X, minion.getCellCoord().Z);
+    //Cell_byPosition(temp, minion.getPosition());
+    addEntityToCell(temp, minion);
+   // entities.ModAppend(minion);
+}
+
+
+public void constructorCleanup(){
+    //tickOffsetSorted = SortedArray(tickOffsetSorted, (<Creature>ArrayElement()).tickOffset);
+    //LogToInspector(toString(tickOffsetSorted));
+    //LogToInspector(toString(MappedArray(tickOffsetSorted, (<Creature>ArrayElement()).tickOffset)));
+}

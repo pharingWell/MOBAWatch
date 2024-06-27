@@ -1,0 +1,61 @@
+import "customGameSettings.lobby";
+import "../debug.ostw";
+playervar Vector lastposition;
+playervar Vector nextpos;
+//playervar Vector intersectionPos;
+playervar Number hitboxRadius;
+globalvar Vector wallPos = Vector(RandomReal(-10,10),0,RandomReal(-10,10));
+globalvar Vector normal = DirectionFromAngles(RandomReal(-90,90),0);
+//globalvar Vector wallDirection = ;
+rule: 'My Rule'
+{
+    printToScreen($"Load:{ServerLoad()},Peak:{ServerLoadPeak()},Avg:{ServerLoadAverage()}");
+    CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,wallPos+CrossProduct(Up(),normal)*50,wallPos+CrossProduct(Up(),normal)*-50,Color.Aqua,EffectRev.VisibleToPositionAndRadius);
+    CreateBeamEffect(LocalPlayer(), BeamType.GrappleBeam,wallPos,wallPos+normal,Color.Team1,EffectRev.VisibleToPositionAndRadius);
+    CreateEffect(LocalPlayer(),Effect.Ring, Color.Aqua, UpdateEveryFrame(LocalPlayer().Position()*Vector(1,0,1)), LocalPlayer().hitboxRadius, EffectRev.VisibleToPositionAndRadius);
+}
+    
+globalvar Number thickness:  0.25;
+
+ Number getIntersectionDistanceFromSegment(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal);
+Vector getSegmentPlaneIntersection(in Vector segmentStart, in Vector segmentDirection, in Number intersectionDistance): segmentStart +  intersectionDistance * segmentDirection;
+
+Vector getSegmentPlaneIntersection_full(in Vector segmentStart, in Vector segmentDirection, in Vector planeNormal, in Vector pointOnPlane): segmentStart +  DotProduct(pointOnPlane - segmentStart,planeNormal)/DotProduct(segmentDirection,planeNormal) * segmentDirection;
+playervar Boolean throttled;
+rule: 'My Rule'
+Event.OngoingPlayer
+if(HasSpawned())
+{
+    Vector position: PositionOf();
+    Vector intersectionPos =  position - vectorProjection(position-wallPos, normal);
+    Vector velocity: VelocityOf()/16;
+    Vector radius = DirectionTowards(PositionOf(), intersectionPos)*(hitboxRadius+thickness);
+    nextpos = position + radius + velocity;
+    Number sideOfWall = DotProduct(DirectionTowards(intersectionPos,position),normal);
+    if((DotProduct(DirectionTowards(intersectionPos,lastposition),normal) > 0) != (sideOfWall > 0)){
+        Teleport(EventPlayer(), intersectionPos + radius); //teleport detectionz
+    }else if((DotProduct(DirectionTowards(intersectionPos,nextpos),normal) > 0) != (sideOfWall > 0)){
+        if(IsOnGround()){
+            SetGravity(EventPlayer(), 0);
+        }
+        ApplyImpulse(EventPlayer(),normal*sideOfWall,thickness,Relative.ToWorld,ContraryMotion.CancelXYZ); //normal movement detection
+    }
+    lastposition = PositionOf();
+    Wait();
+    SetGravity(EventPlayer(), 100);
+    Loop();
+}
+
+rule: "players store their melee hitboxes on hero swap"
+Event.OngoingPlayer
+if (HasSpawned(EventPlayer()) == true)
+{
+    hitboxRadius = [0.40, 0.35, 0.35, 0.45, 0.55, 0.8, 0.55, 1.05, 0.45, 0.90, 0.40, 0.45, 0.45, 0.95, 0.45, 0.4, 0.7, 0.45, 0.6, 1.1, 0.6, 0.5, 0.85, 0.5, 0.9, 0.60, 0.45, 0.95, 0.45, 0.4, 0.6, 0.65, 0.5, 0.7, 0.9, 0.65, 0.55][IndexOfArrayValue(AllHeroes(), HeroOf())];
+    Wait(0.016, WaitBehavior.IgnoreCondition);
+    WaitUntil(EvaluateOnce(HeroOf(EventPlayer())) != HeroOf(EventPlayer()), 99999);
+    Loop();
+}
+
+Vector vectorProjection(in Vector a, in Vector onto){
+    return onto * (DotProduct(a,onto)/DotProduct(onto,onto));
+}

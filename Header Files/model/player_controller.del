@@ -1,0 +1,5 @@
+import "../grid.del";
+import "model.del";
+playervar Cell[] viewedCells;
+
+

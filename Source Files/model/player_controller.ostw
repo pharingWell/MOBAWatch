@@ -1,0 +1,50 @@
+import "../../Header Files/model/player_controller.del";
+import "puppet.ostw";
+import "../../Header Files/ui.del";
+import "../../Header Files/main.del";
+rule: 'Force to become observer'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
+{
+    WaitUntil(READY, 999);
+    ForcePlayerHero(EventPlayer(),Hero.Ana); 
+    DisableHeroHud();
+    SetInvisible(EventPlayer(),InvisibleTo.All);
+ //   SetAimSpeed(EventPlayer(), 0.01);
+    SetGravity(EventPlayer(),0);
+    Wait(0.5);
+    StartForcingPlayerPosition(EventPlayer(),Vector(1,0,1)*cameraPosition(EventPlayer())+Vector(0,-10,0),true);
+    Wait(0.5);
+    StopForcingPlayerPosition(EventPlayer());
+    DisallowButton(EventPlayer(),Button.PrimaryFire);
+    async betterForcing();
+    setPlayerInfo(EPlayerInfo.IS_READY, true);
+    setName(EventPlayer());
+    showHUD = 1;
+}
+
+rule: 'Setup player'
+Event.OngoingPlayer
+if(!IsDummyBot(EventPlayer()))
+if(isSetup())
+{
+    DisableNameplates(puppets, EventPlayer());
+    otherModelMember = puppets[ID];
+    isCameraLocked = true; //todo: grab player's settings on load
+    printToScreen($"Setup:{EventPlayer()}, cam locked: {isCameraLocked}");
+}
+
+
+void betterForcing() "Better Camera Forcing"{ //this is not in async.ostw because starting a tick late doesnt matter
+    if( (Vector(1,0,1)*(EventPlayer().Position() - cameraPosition(EventPlayer()))).Magnitude > 1){
+        define PC: PositionOf(EventPlayer());
+        define CAM: Vector(1,0,1)*cameraPosition(EventPlayer())+Vector(0,-10,-30);
+        ApplyImpulse(EventPlayer(), DirectionTowards(PC,CAM), DistanceBetween(PC,CAM), Relative.ToWorld, ContraryMotion.CancelXYZ);
+    }
+    Wait(1);
+    Loop();
+}
+
+//"Move camera to mouse on click" is found in async.ostw
+
+

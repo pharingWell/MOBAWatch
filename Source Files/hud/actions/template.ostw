@@ -1,0 +1,27 @@
+import "../../../Header Files/ui.del";
+import "../../../Header Files/hud/ux.del";
+import "../../../Header Files/hud/actions/template.del";
+
+// template
+rule: 'Template'
+Event.OngoingPlayer
+if(templateIds.Contains(activeHudId))
+{
+    switch(hudAction.action){
+        case EHudInteractionType.LCLICK:
+            break;
+        case EHudInteractionType.LHELD:
+            notHolding_Left();
+            break;
+        case EHudInteractionType.RCLICK:
+            break;
+        case EHudInteractionType.RHELD:
+            notHolding_Right();
+            break;
+        case EHudInteractionType.HOVER:
+            notHovering();
+            break;
+    }
+    Wait();
+    consumeInput();
+}

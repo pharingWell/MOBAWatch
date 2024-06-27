@@ -1,0 +1,33 @@
+import "..\entity.del";
+import "base_projectile.del";
+import "../../global.ostw";
+class PathedProjectile : Projectile
+{
+    public Number tickOffset;
+    public void fire(in Vector path_vector, Effect effect)
+    {
+        this.tickOffset = TotalTimeElapsed();
+        CreateEffect(LocalPlayer(), effect, Color.White, UpdateEveryFrame(path_vector) + Vector(CELL_WIDTH, 0, CELL_HEIGHT) * Vector(5,0,3) + GRID_BASE, 0.5, EffectRev.VisibleToPositionAndRadius);
+        //this.render = LastCreatedEntity();
+
+    }
+
+    // void fire(in Vector path, ProjectileType projectileEffect){
+    //     CreateProjectileEffect(LocalPlayer(), projectileEffect, AllPlayers(this.team),  path + Vector(CELL_WIDTH, 0, CELL_HEIGHT) * this.getCellCoord() + GRID_BASE, Vector(), 1, ProjectileEffectReeval.VisibleToPositionDirectionAndSize);
+    // }
+    //     public void fire(in Vector path,)
+    // {
+    //     CreateEffect(LocalPlayer(), effect, Color.White, path + Vector(CELL_WIDTH, 0, CELL_HEIGHT) * this.getCellCoord() + GRID_BASE, 0.5, EffectRev.VisibleToPositionAndRadius);
+    //     this.render = LastCreatedEntity();
+
+    // }
+
+    public define t: TotalTimeElapsed() - this.tickOffset + TICK_MAGIC;
+    public constructor()
+    {
+        //this.source = source;
+        //baseproj_constructor(source);
+    }
+
+    
+}

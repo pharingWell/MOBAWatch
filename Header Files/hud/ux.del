@@ -1,0 +1,80 @@
+import "../ui.del";
+import "../../global.ostw";
+import "../../debug.ostw";
+import "actions/common.del";
+import "actions/map.del";
+import "actions/button.del";
+
+globalvar Number[] hudRegionIds: [0, 1, 2, 3]; //range(0, hudRegions.Length)
+playervar Region[] hudRegions = [Region.makeEmpty(), PANEL_Map, PANEL_Button];
+
+enum EActionConditions{
+    MOUSE_STILL,
+    HOVER_AVAILABLE
+}
+
+playervar Boolean[] actionConditions;
+
+
+
+String[] EString_HudInteractionType: ["none","lclick","rclick", "ldrag", "rdrag", "hover"];
+
+playervar Number[] hudIdList!;
+playervar Number|Number[] activeHudId;
+
+struct HudAction{
+    public Vector actionLocation;
+    public EHudInteractionType action;
+
+}
+
+playervar Number[] sortedAffectedIds;
+
+# actionLocation: Vector2, action: EHudInteractionType
+playervar HudAction hudAction;
+
+Region getRegion(Player player = EventPlayer(), Number id = activeHudId): player.hudRegions[id];
+Number getState(Player player = EventPlayer(), Number id = activeHudId): getRegion(player, id).state;
+void setState(in Any state, in Player player = EventPlayer(), in Number id = activeHudId){
+    player.hudRegions[id].state = state;
+}
+void setState2(in Any state, in Player player = EventPlayer(), in Number id = activeHudId){
+    player.hudRegions[id].state2 = state;
+}
+void setState3(in Any state, in Player player = EventPlayer(), in Number id = activeHudId){
+    player.hudRegions[id].state3 = state;
+}
+Number[] unsortedIdsUnderCursor(): FilteredArray(hudRegionIds, ArrayElement() != 0
+        && cursorX() <= hudRegions[ArrayElement()].x + hudRegions[ArrayElement()].halfwidth
+        && cursorX() >= hudRegions[ArrayElement()].x - hudRegions[ArrayElement()].halfwidth
+        && cursorY() <= hudRegions[ArrayElement()].y + hudRegions[ArrayElement()].height
+        && cursorY() >= hudRegions[ArrayElement()].y
+    );
+
+void consumeInput(){
+    hudAction = {actionLocation: Vector(), action: EHudInteractionType.NONE};
+    activeHudId = null;
+}
+
+void yieldInput(){
+    hudIdList = hudIdList.ModRemoveByIndex(0);
+    forceLog(toString(hudIdList));
+    Abort();
+}
+
+void notHolding_Left(){
+    WaitUntil(!IsButtonHeld(EventPlayer(), Button.PrimaryFire), 9999);
+}
+
+void notHolding_Right(){
+    WaitUntil(!IsButtonHeld(EventPlayer(), Button.SecondaryFire), 9999);
+}
+
+void notHovering(){
+    WaitUntil(hudAction.action != EHudInteractionType.HOVER ||
+        cursorX() > hudRegions[activeHudId].x + hudRegions[activeHudId].halfwidth
+        || cursorX() < hudRegions[activeHudId].x - hudRegions[activeHudId].halfwidth
+        || cursorY() > hudRegions[activeHudId].y + hudRegions[activeHudId].height
+        || cursorY() < hudRegions[activeHudId].y
+    , 9999);
+}

@@ -1,0 +1,40 @@
+import "model.del";
+import "..\ui.del";
+
+playervar Boolean startedMoving!;
+
+
+// void colorThing(Color color, Number i){
+
+//         define size: 1.35;
+//         define shift: i*40;
+
+        // CreateInWorldText(LocalPlayer(), "|ІІІІІІІІ|ІІІІІІІІ|ІІІІІІІІ|ІІІІІІІι|", uiPos(LocalPlayer(), shift, 8*size), size, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, color, Spectators.DefaultVisibility);
+        // CreateInWorldText(LocalPlayer(), "|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺιฺ|ιฺιฺιฺː|", uiPos(LocalPlayer(), shift, 6*size), size, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, EvaluateOnce(color), Spectators.DefaultVisibility);
+        // CreateInWorldText(LocalPlayer(), "|ιιιι|ιιιι|ιιιι|ιιιι|ιιιι|ιιιι|ιιιι|ιιιː|", uiPos(LocalPlayer(), shift, 4*size), size, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, color, Spectators.DefaultVisibility);
+        // CreateInWorldText(LocalPlayer(), "|Іฺḷḷḷ·ḷḷḷḷ·ḷḷḷḷ·ḷḷḷḷ·ḷḷḷḷ·ḷḷḷḷ·ḷḷḷḷ·ḷḷḷι|", uiPos(LocalPlayer(), shift, 2*size), size, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, color, Spectators.DefaultVisibility);
+        // CreateInWorldText(LocalPlayer(), "|ǁǁǁ·ǁǁǁ·ǁǁǁ·ǁǁǁ·ǁǁǁ·ǁǁǁ·ǁǁǁ·ǁǁǀ|", uiPos(LocalPlayer(), shift, 0), size, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, color, Spectators.DefaultVisibility);
+// }
+// define nodmg: "ИИИ";
+// define nohealth: "         ";
+// define percentage(Number base): ((health/maxHealth*100)-base)*4;
+// //each tick is 2.5% of total health
+// String barSection(in Number base): percentage(base) < 100 ? singleSection(percentage(base), 0) + singleSection(percentage(base), 33.33) + singleSection(percentage(base), 66.66) : nodmg;
+
+//     //-..: ıฺǐΙṭ!ːฺ¡¸.ฺιฺḷḷỊ̌ »
+//     //Ḭ︱|
+//     //¸ ฺ․
+// define large: ["   ", "Ι   ", "Γ ", "Π"];
+// String singleSection(in Number percentage, in Number percentBase): large[Min(3, Max(0, RoundToInteger((percentage-percentBase)*(.3), Rounding.Up)))];
+
+
+
+/*
+
+    createInWorldText(null if not eventPlayer.isAlive() else localPlayer if not eventPlayer.Hidden else getPlayers(eventPlayer.getTeam()),"{}\n|{}|{}|{}|{}|\n{}".format("            <•>" if not eventPlayer.Hidden else " ",
+    "{0}{1}{2}".format(__substring__("IIIII",0,-0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])))), __substring__("",ceil((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])*100%5),(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])<0.25), __substring__("-----",((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>0)*0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH]))),5)),
+    "{0}{1}{2}".format(__substring__("IIIII",0,-0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.25))),__substring__("-..::I",ceil((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])*100%5),(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])<0.5 and (eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.25), __substring__("-----",((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.25)*0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.25)),5)),
+    "{0}{1}{2}".format(__substring__("IIIII",0,-0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.5))), __substring__("-..::I",ceil((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])*100%5),(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])<0.75 and (eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.5), __substring__("-----",((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.5)*0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.5)),5)),
+    "{0}{1}{2}".format(__substring__("IIIII",0,-0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.75))),__substring__("-..::I",ceil((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])*100%5),(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])<1 and (eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.75), __substring__("-----",((eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])>=0.75)*0.5+min(5,20*max(0,(eventPlayer.Health[0]/eventPlayer.PlayerStats[PStat.HEALTH])-0.75)),5)),
+    "{}{}".format("                 \b.|".substring(0, 3 * (max(0, 6.25 - strLen("{0}".format(eventPlayer)) / 2))), "{0}".format(eventPlayer))),updateEveryTick(vect(eventPlayer.getEyePosition().x,eventPlayer.getEyePosition().y+0.0,eventPlayer.getEyePosition().z+0.1)),1,Clip.NONE,WorldTextReeval.VISIBILITY_POSITION_STRING_AND_COLOR, Color.GREEN if(localPlayer==eventPlayer.Owner) else eventPlayer.getTeam(),SpecVisibility.NEVER)
+    */

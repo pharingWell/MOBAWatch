@@ -1,0 +1,44 @@
+import "../../../global.del";
+import "../../../Header Files/ui.del";
+import "../../ui.ostw";
+import "../../../Header Files/hud/ux.del";
+import "../../../Header Files/hud/actions/map.del";
+
+void mapInside_setCoord(){
+    viewingMap = true;
+    setState(clamp(cursorX() - getRegion().x, minX, maxX));
+    setState2(clamp(cursorY() - getRegion().y - PANEL_Map.height/2, minY, maxY));
+    define newPosition! = Vector(getRegion().state * xMult, 0, getRegion().state2 * yMult);
+    teleportCamera(newPosition);
+    // if(DistanceBetween(newPosition, renderPosition)<50){
+    //     renderPosition = newPosition;
+    //     ChaseVariableAtRate(cameraPos, newPosition, 10, RateChaseReevaluation.DestinationAndRate);
+    // }else{
+        
+    // }
+    
+}
+
+
+// Minimap
+rule: 'Minimap'
+Event.OngoingPlayer
+if(!IsDummyBot())
+if(mapIds.Contains(activeHudId))
+{
+    switch(hudAction.action){
+        case EHudInteractionType.LHELD:
+            showCursor = false;
+            while(IsButtonHeld(EventPlayer(), Button.PrimaryFire)){
+                mapInside_setCoord();
+                Wait();
+            }
+            showCursor = true;
+            break;
+        case EHudInteractionType.LCLICK:
+            mapInside_setCoord();
+            break;
+    }
+    Wait();
+    consumeInput();
+}

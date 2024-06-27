@@ -1,0 +1,42 @@
+import "statics.del";
+import "creature.del";
+import "grid.del";
+enum EStructureStrength{
+    TOWER,
+    FORT,
+    KEEP,
+    CORE
+}
+
+class Structure : Statics
+{
+    public Number health;
+    public Team team;
+    public Targettable target;
+    
+}
+
+class Core : Structure
+{
+    public constructor(Vector pos, Team team){
+        this.position = pos;
+        this.points = GetLines("../.resources/meshes/core.obj");
+        this.health = 100;
+        this.team = team;
+    }
+    public static Core[] corePositions = [];
+}
+
+void addStructures(){
+    Cell cell1!;
+    Cell_byPosition(cell1, CORE_POSITIONS[0]);
+    Cell cell2!;
+    Cell_byPosition(cell2, CORE_POSITIONS[1]);
+
+    Core t1Core = new Core(CORE_POSITIONS[0], Team.Team1);
+    cell1.statics += t1Core;
+    Core t2Core = new Core(CORE_POSITIONS[1], Team.Team2);
+    cell2.statics += t2Core;
+    Wait(1);
+   // LogToInspector($"{GRID_BASE},{t1Core.position},{t2Core.position}");
+}

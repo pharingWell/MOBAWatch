@@ -1,0 +1,9 @@
+import "common.del";
+
+enum EUX_ButtonState{
+    OFF,
+    ON
+}
+
+Number[] buttonIds: [2,3];
+Region PANEL_Button: Region.make(20, 0, -60, 16, 5, [EHudInteractionType.LCLICK, EHudInteractionType.HOVER]);

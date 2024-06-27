@@ -1,0 +1,5 @@
+Number clamp(Number value, Number min, Number max): Max(Min(value, max), min);
+# a
+void resizeArray(ref Any[] array, in Number length){
+    array[length] = -0.0001;
+}

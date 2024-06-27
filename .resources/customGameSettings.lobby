@@ -1,0 +1,12 @@
+{
+  "Modes": {
+    "Skirmish": {
+      "Enabled Maps": [
+        "Workshop Island (Night)"
+      ]
+    }
+  },
+  "Extensions": {
+    "Beam Effects": true
+  }
+}
